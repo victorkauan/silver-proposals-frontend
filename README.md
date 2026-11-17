@@ -25,6 +25,19 @@ npm run dev
 
 The app runs at <http://localhost:5173>.
 
+## With the local API
+
+1. Start the backend locally, following the backend's
+   [local environment](https://github.com/victorkauan/silver-proposals-backend#local-environment) guide.
+   The API listens on <http://localhost:8000>.
+2. Point the frontend at it in `.env`:
+
+   ```bash
+   VITE_API_BASE_URL=http://localhost:8000
+   ```
+
+3. Run `npm run dev`. Vite only reads `.env` at startup, so restart it after changing the file.
+
 ## Contributing
 
 Install the Git hooks before your first commit:
