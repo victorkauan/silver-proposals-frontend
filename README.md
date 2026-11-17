@@ -1,5 +1,7 @@
 # Silver Proposals — Frontend
 
+[![CI](https://github.com/victorkauan/silver-proposals-frontend/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/victorkauan/silver-proposals-frontend/actions/workflows/ci.yml)
+
 Web application for **Silver Proposals**, an AI-powered SaaS for creating and managing commercial proposals.
 Built with React, TypeScript, Vite, Tailwind CSS v4, and shadcn/ui. The static build is published to Amazon S3 behind CloudFront.
 
@@ -56,10 +58,23 @@ Security issues: see [SECURITY.md](SECURITY.md).
 npm run lint
 npm run format:check
 npm run typecheck
-npm test
+npm run test:coverage
 npx playwright install --with-deps chromium   # once
 npm run test:e2e
 ```
+
+## Continuous integration
+
+GitHub Actions runs on every pull request and on every push to `main`:
+
+| Workflow                                   | Job        | Checks                                                           |
+| ------------------------------------------ | ---------- | ---------------------------------------------------------------- |
+| [CI](.github/workflows/ci.yml)             | `quality`  | Prettier, oxlint, TypeScript, Vitest with coverage (minimum 80%) |
+|                                            | `e2e`      | Playwright smoke test on Chromium (report uploaded on failure)   |
+|                                            | `build`    | production build                                                 |
+| [PR title](.github/workflows/pr-title.yml) | `pr-title` | Conventional Commits title ending with `[SIL-<n>]`               |
+
+The coverage report is published in each run's summary.
 
 ## Build
 
