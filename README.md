@@ -3,11 +3,11 @@
 Web application for **Silver Proposals**, an AI-powered SaaS for creating and managing commercial proposals.
 Built with React, TypeScript, Vite, Tailwind CSS v4, and shadcn/ui. The static build is published to Amazon S3 behind CloudFront.
 
-| Repository | Responsibility |
-|---|---|
-| [silver-proposals-backend](https://github.com/victorkauan/silver-proposals-backend) | FastAPI API, container image published to ECR |
-| **silver-proposals-frontend** (this repo) | React SPA, static build published to S3 + CloudFront |
-| [silver-proposals-infra](https://github.com/victorkauan/silver-proposals-infra) | Terraform for AWS and Cloudflare |
+| Repository                                                                          | Responsibility                                       |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [silver-proposals-backend](https://github.com/victorkauan/silver-proposals-backend) | FastAPI API, container image published to ECR        |
+| **silver-proposals-frontend** (this repo)                                           | React SPA, static build published to S3 + CloudFront |
+| [silver-proposals-infra](https://github.com/victorkauan/silver-proposals-infra)     | Terraform for AWS and Cloudflare                     |
 
 Why three repositories: [ADR-0001](https://github.com/victorkauan/silver-proposals-infra/blob/main/docs/adr/0001-three-repositories.md).
 
@@ -25,10 +25,23 @@ npm run dev
 
 The app runs at <http://localhost:5173>.
 
+## Contributing
+
+Install the Git hooks before your first commit:
+
+```bash
+uv tool install pre-commit   # or: pipx install pre-commit
+pre-commit install
+```
+
+Branch, commit, and pull request conventions are in [CONTRIBUTING.md](CONTRIBUTING.md).
+Security issues: see [SECURITY.md](SECURITY.md).
+
 ## Quality checks
 
 ```bash
 npm run lint
+npm run format:check
 npm run typecheck
 npm test
 npx playwright install --with-deps chromium   # once
