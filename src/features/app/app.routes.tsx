@@ -48,5 +48,13 @@ export const routes: RouteObject[] = [
       },
     ],
   },
+  {
+    path: '/p/:token',
+    hydrateFallbackElement: <FullPageSpinner />,
+    lazy: () =>
+      import('@features/proposals/pages/public-proposal').then((m) => ({
+        Component: m.PublicProposalPage,
+      })),
+  },
   { path: '*', element: <Navigate to="/" replace /> },
 ]
