@@ -1,0 +1,96 @@
+name: Deploy environment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment (staging or prod).
+        required: true
+        type: string
+      commit:
+        description: Commit to build and publish.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: deploy (${{ inputs.environment }})
+    runs-on: ubuntu-24.04
+    # The environment holds the approval rule (prod needs a reviewer) and the variables, and it is the
+    # only OIDC subject the deploy role trusts.
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.APP_URL }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      BUCKET: ${{ vars.S3_BUCKET }}
+      DISTRIBUTION: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+    steps:
+      - name: Check configuration
+        env:
+          ROLE: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+        run: |
+          if [ -z "$ROLE" ] || [ -z "$BUCKET" ] || [ -z "$VITE_API_BASE_URL" ]; then
+            echo "::error::The ${{ inputs.environment }} environment has no deploy variables yet. Publish them from the infra repository (scripts/publish-outputs.sh)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.commit }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: deploy-frontend-${{ inputs.environment }}-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Hashed assets are cached for a year; index.html is never cached, so a deploy is visible at once.
+      # Old assets are kept so that open tabs can still load their lazy chunks.
+      - name: Publish to S3
+        run: |
+          aws s3 sync dist "s3://$BUCKET" --exclude index.html \
+            --cache-control "public, max-age=31536000, immutable"
+          aws s3 cp dist/index.html "s3://$BUCKET/index.html" \
+            --cache-control "no-cache, no-store, must-revalidate" --content-type "text/html; charset=utf-8"
+
+      - name: Invalidate CloudFront
+        run: |
+          id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths "/index.html" "/" \
+            --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
+
+      - name: Smoke test
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          for _ in $(seq 1 10); do
+            if curl -fsS "$APP_URL/" | grep -q '<div id="root">'; then echo "ok"; exit 0; fi
+            sleep 6
+          done
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Frontend deploy: \`${{ inputs.environment }}\`"
+            echo "- Commit: \`${{ inputs.commit }}\`"
+            echo "- API: ${VITE_API_BASE_URL}"
+            echo "- URL: ${{ vars.APP_URL }}"
+          } >> "$GITHUB_STEP_SUMMARY"

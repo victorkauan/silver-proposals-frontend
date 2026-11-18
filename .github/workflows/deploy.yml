@@ -1,0 +1,39 @@
+name: Deploy
+
+# Runs after CI passes on main: build for staging and publish it automatically, then build the same
+# commit for production and publish it after approval. The API URL is embedded at build time, so each
+# environment gets its own build. Variables come from the infra repository's Terraform outputs.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  staging:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: staging
+      commit: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+  prod:
+    needs: staging
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: prod
+      commit: ${{ github.event.workflow_run.head_sha || github.sha }}
