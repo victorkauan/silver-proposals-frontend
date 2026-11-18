@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { FileText, Sparkles } from 'lucide-react'
+import { Ellipsis, Eye, FileText, History, PenLine, Sparkles } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
 import { ApiError } from '@shared/api/http.client'
@@ -8,6 +8,12 @@ import { FormError } from '@shared/components/form-error'
 import { Alert, AlertAction, AlertDescription } from '@shared/components/ui/alert'
 import { Badge } from '@shared/components/ui/badge'
 import { Button, buttonVariants } from '@shared/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@shared/components/ui/dropdown-menu'
 import { Skeleton } from '@shared/components/ui/skeleton'
 import { formatDate, formatRelative } from '@shared/helpers/date.helper'
 import { AppShell } from '@features/app/components/app-shell'
@@ -15,6 +21,7 @@ import { DocumentSheet } from '@features/proposals/components/document-sheet'
 import { GenerationPreview } from '@features/proposals/components/generation-preview'
 import { MarkdownView } from '@features/proposals/components/markdown-view'
 import { ProposalOutline } from '@features/proposals/components/proposal-outline'
+import { ShareDialog } from '@features/proposals/components/share-dialog'
 import { proposalApi, proposalKeys } from '@features/proposals/proposal.api'
 import type { ProposalDetail } from '@features/proposals/proposal.type'
 import { useGeneration } from '@features/proposals/use-generation.hook'
@@ -72,7 +79,8 @@ export function ProposalPage() {
 function ProposalView({ proposal }: { proposal: ProposalDetail }) {
   const generation = useGeneration()
   const generating = generation.status === 'streaming'
-  const canGenerate = proposal.role !== 'viewer' && proposal.briefing.trim() !== ''
+  const canEdit = proposal.role !== 'viewer'
+  const canGenerate = canEdit && proposal.briefing.trim() !== ''
   const hasContent = proposal.content.trim() !== ''
   const meta = [
     { label: 'Cliente', value: proposal.client_name },
@@ -89,6 +97,12 @@ function ProposalView({ proposal }: { proposal: ProposalDetail }) {
               <Badge variant={hasContent ? 'secondary' : 'outline'}>
                 {hasContent ? 'Rascunho' : 'Sem conteúdo'}
               </Badge>
+              {!canEdit && (
+                <Badge variant="outline">
+                  <Eye />
+                  Somente leitura
+                </Badge>
+              )}
               {proposal.version > 0 && (
                 <Badge variant="outline" className="tabular-nums">
                   Versão {proposal.version}
@@ -100,11 +114,38 @@ function ProposalView({ proposal }: { proposal: ProposalDetail }) {
               {proposal.client_name} · atualizada {formatRelative(proposal.updated_at)}
             </p>
           </div>
-          {canGenerate && hasContent && !generating && (
-            <Button variant="outline" onClick={() => void generation.generate(proposal.id)}>
-              <Sparkles />
-              Gerar novamente
-            </Button>
+          {!generating && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                to={`/propostas/${proposal.id}/historico`}
+                className={buttonVariants({ variant: 'ghost' })}
+              >
+                <History />
+                Histórico
+              </Link>
+              {proposal.role === 'owner' && <ShareDialog proposalId={proposal.id} />}
+              {canEdit && (
+                <Link to={`/propostas/${proposal.id}/editar`} className={buttonVariants()}>
+                  <PenLine />
+                  Editar
+                </Link>
+              )}
+              {canGenerate && hasContent && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={<Button variant="ghost" size="icon" aria-label="Mais ações" />}
+                  >
+                    <Ellipsis />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => void generation.generate(proposal.id)}>
+                      <Sparkles />
+                      Gerar novamente
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           )}
         </header>
 
@@ -131,12 +172,23 @@ function ProposalView({ proposal }: { proposal: ProposalDetail }) {
                     ? 'Gere a primeira versão a partir do briefing.'
                     : 'O conteúdo aparecerá aqui quando for escrito.'}
                 </p>
-                {canGenerate && (
-                  <Button onClick={() => void generation.generate(proposal.id)}>
-                    <Sparkles />
-                    Gerar com IA
-                  </Button>
-                )}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {canGenerate && (
+                    <Button onClick={() => void generation.generate(proposal.id)}>
+                      <Sparkles />
+                      Gerar com IA
+                    </Button>
+                  )}
+                  {canEdit && (
+                    <Link
+                      to={`/propostas/${proposal.id}/editar`}
+                      className={buttonVariants({ variant: 'outline' })}
+                    >
+                      <PenLine />
+                      Escrever manualmente
+                    </Link>
+                  )}
+                </div>
               </div>
               <ProposalOutline proposal={proposal} />
             </div>

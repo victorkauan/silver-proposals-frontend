@@ -23,6 +23,11 @@ export function formatRelative(iso: string, now: Date = new Date()): string {
   return 'agora mesmo'
 }
 
-export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(iso))
+const dateFormats = {
+  long: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }),
+  short: new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }),
+}
+
+export function formatDate(iso: string, style: keyof typeof dateFormats = 'long'): string {
+  return dateFormats[style].format(new Date(iso))
 }

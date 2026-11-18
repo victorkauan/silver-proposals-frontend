@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router'
 
 import { ThemeProvider } from '@shared/components/theme-provider'
+import { Toaster } from '@shared/components/ui/sonner'
 import { type Session, SessionContext } from '@features/auth/session.context'
 
 export function fakeSession(overrides: Partial<Session> = {}): Session {
@@ -41,6 +42,7 @@ export function renderRoute(element: ReactElement, options: Options = {}) {
       <QueryClientProvider client={queryClient}>
         <SessionContext value={session}>
           <RouterProvider router={router} />
+          <Toaster />
         </SessionContext>
       </QueryClientProvider>
     </ThemeProvider>,

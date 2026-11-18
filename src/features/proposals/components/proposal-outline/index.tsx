@@ -5,7 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@shared/components/ui/collapsible'
-import { formatDateTime } from '@shared/helpers/date.helper'
+import { formatDate, formatDateTime } from '@shared/helpers/date.helper'
 import { countPlaceholders, extractSections } from '@features/proposals/markdown.helper'
 import type { ProposalDetail } from '@features/proposals/proposal.type'
 
@@ -69,9 +69,13 @@ export function ProposalOutline({ proposal }: { proposal: ProposalDetail }) {
           <dt className="text-muted-foreground">Seu papel</dt>
           <dd className="text-right">{ROLE[proposal.role]}</dd>
           <dt className="text-muted-foreground">Criada</dt>
-          <dd className="text-right">{formatDateTime(proposal.created_at)}</dd>
+          <dd className="text-right" title={formatDateTime(proposal.created_at)}>
+            {formatDate(proposal.created_at, 'short')}
+          </dd>
           <dt className="text-muted-foreground">Atualizada</dt>
-          <dd className="text-right">{formatDateTime(proposal.updated_at)}</dd>
+          <dd className="text-right" title={formatDateTime(proposal.updated_at)}>
+            {formatDate(proposal.updated_at, 'short')}
+          </dd>
         </dl>
       </div>
 

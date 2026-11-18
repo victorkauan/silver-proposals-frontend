@@ -5,13 +5,14 @@ All user-facing text is in Brazilian Portuguese.
 
 ## Building blocks
 
-| Concern      | Choice                                                           | Where                                |
-| ------------ | ---------------------------------------------------------------- | ------------------------------------ |
-| Routing      | React Router (data router)                                       | `src/features/app/app.routes.tsx`    |
-| Server state | TanStack Query (mutations and queries, loading and error states) | `src/features/app/index.tsx`         |
-| Forms        | React Hook Form with Zod schemas that mirror the API validation  | `src/features/*/<feature>.schema.ts` |
-| UI           | shadcn/ui on Tailwind CSS v4 (Base UI primitives)                | `src/@shared/components/ui`          |
-| API calls    | `request` and `requestJson` in the HTTP client                   | `src/@shared/api/http.client.ts`     |
+| Concern      | Choice                                                                                                           | Where                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Routing      | React Router (data router)                                                                                       | `src/features/app/app.routes.tsx`      |
+| Server state | TanStack Query (mutations and queries, loading and error states)                                                 | `src/features/app/index.tsx`           |
+| Forms        | React Hook Form with Zod schemas that mirror the API validation                                                  | `src/features/*/<feature>.schema.ts`   |
+| UI           | shadcn/ui on Tailwind CSS v4 (Base UI primitives)                                                                | `src/@shared/components/ui`            |
+| API calls    | `request` and `requestJson` in the HTTP client                                                                   | `src/@shared/api/http.client.ts`       |
+| Feedback     | Toasts with [Sonner](https://sonner.emilkowal.ski/) for save, copy, and error results; dialogs for confirmations | `src/@shared/components/ui/sonner.tsx` |
 
 ## Layout and visual style
 

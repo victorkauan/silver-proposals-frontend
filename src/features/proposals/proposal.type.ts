@@ -20,3 +20,30 @@ export type ProposalPage = {
   items: ProposalSummary[]
   total: number
 }
+
+export type VersionSource = 'generated' | 'edited' | 'restored'
+
+export type VersionSummary = {
+  number: number
+  source: VersionSource
+  author_name: string | null
+  content_chars: number
+  created_at: string
+}
+
+export type VersionDetail = VersionSummary & { content: string }
+
+export type VersionPage = {
+  items: VersionSummary[]
+  total: number
+}
+
+export type ShareLink = {
+  id: string
+  expires_at: string
+  revoked_at: string | null
+  created_at: string
+  active: boolean
+}
+
+export type ShareLinkCreated = ShareLink & { token: string }

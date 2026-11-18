@@ -47,7 +47,15 @@ describe('ProposalPage', () => {
     expect(screen.getByText('Cardápio online').tagName).toBe('LI')
     expect(screen.getByText('Versão 2')).toBeInTheDocument()
     expect(document.querySelector('article script')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Gerar novamente' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Editar' })).toHaveAttribute(
+      'href',
+      '/propostas/p-1/editar',
+    )
+    expect(screen.getByRole('link', { name: 'Histórico' })).toHaveAttribute(
+      'href',
+      '/propostas/p-1/historico',
+    )
+    expect(screen.getByRole('button', { name: 'Compartilhar' })).toBeInTheDocument()
   })
 
   it('shows the outline, links to sections, and highlights the gaps the AI left', async () => {
@@ -78,7 +86,8 @@ describe('ProposalPage', () => {
     })
     renderRoute(<ProposalPage />, { path: '/propostas/:id', initialEntries: ['/propostas/p-1'] })
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Gerar novamente' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Mais ações' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Gerar novamente' }))
     expect(await screen.findByRole('list', { name: 'Seções escritas' })).toHaveTextContent('Novo')
     await userEvent.click(screen.getByRole('button', { name: 'Parar geração' }))
 
@@ -121,7 +130,8 @@ describe('ProposalPage', () => {
     })
     renderRoute(<ProposalPage />, { path: '/propostas/:id', initialEntries: ['/propostas/p-1'] })
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Gerar novamente' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Mais ações' }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Gerar novamente' }))
 
     expect(
       await screen.findByText('Não foi possível gerar a proposta. Tente novamente.'),
@@ -129,13 +139,27 @@ describe('ProposalPage', () => {
     expect(screen.getByRole('heading', { name: 'Escopo' })).toBeInTheDocument()
   })
 
-  it('does not offer generation to viewers', async () => {
+  it('is read-only for viewers', async () => {
     render({ role: 'viewer', content: '' })
 
     expect(
       await screen.findByText('O conteúdo aparecerá aqui quando for escrito.'),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Gerar com IA' })).not.toBeInTheDocument()
+    expect(screen.getByText('Somente leitura')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Histórico' })).toBeInTheDocument()
+    for (const name of ['Gerar com IA', 'Compartilhar', 'Mais ações']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    }
+    expect(
+      screen.queryByRole('link', { name: /Editar|Escrever manualmente/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('lets editors edit but not share', async () => {
+    render({ role: 'editor' })
+
+    expect(await screen.findByRole('link', { name: 'Editar' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Compartilhar' })).not.toBeInTheDocument()
   })
 
   it('says when the proposal does not exist', async () => {
