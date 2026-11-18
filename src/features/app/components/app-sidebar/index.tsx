@@ -16,7 +16,7 @@ import {
 } from '@shared/components/ui/sidebar'
 import { NavUser } from '@features/app/components/nav-user'
 
-const NAVIGATION = [{ title: 'Propostas', to: '/', icon: FileText }]
+const NAVIGATION = [{ title: 'Propostas', to: '/', icon: FileText, section: '/propostas' }]
 
 export function AppSidebar() {
   const { pathname } = useLocation()
@@ -40,11 +40,11 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
           <SidebarMenu>
-            {NAVIGATION.map(({ title, to, icon: Icon }) => (
+            {NAVIGATION.map(({ title, to, icon: Icon, section }) => (
               <SidebarMenuItem key={to}>
                 <SidebarMenuButton
                   tooltip={title}
-                  isActive={pathname === to}
+                  isActive={pathname === to || pathname.startsWith(section)}
                   render={<Link to={to} />}
                   className="data-active:bg-primary/10 data-active:text-primary data-active:hover:bg-primary/15"
                 >
