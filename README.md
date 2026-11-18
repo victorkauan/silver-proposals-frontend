@@ -79,14 +79,16 @@ saving it, the version history, and creating, opening, and revoking a share link
    ```
 
    If your machine cannot run Playwright's browsers (for example, WSL without the system libraries), use the
-   official image instead. It runs inside the API container's network, so the URLs are the same as above:
+   official image instead, which is also how CI runs the suite. It runs inside the API container's network, so the
+   URLs are the same as above:
 
    ```bash
    ./scripts/e2e-docker.sh
    ```
 
 Set `E2E_API_URL` to point the suite at another API. In CI, the `e2e` job checks out the backend's `main` branch,
-starts it with Docker Compose, and runs the same suite.
+starts it with Docker Compose, and runs `scripts/e2e-docker.sh`, so CI and local runs use the same image. The image
+tag must match the `@playwright/test` version in `package-lock.json`; CI fails with a clear message if they differ.
 
 ## Continuous integration
 
@@ -96,10 +98,23 @@ GitHub Actions runs on every pull request and on every push to `main`:
 | ------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------- |
 | [CI](.github/workflows/ci.yml)             | `quality`  | Prettier, oxlint, TypeScript, Vitest with coverage (minimum 80%)                                        |
 |                                            | `e2e`      | Playwright suite on Chromium against the real API (backend `main`, fake AI); report uploaded on failure |
+|                                            | `security` | Semgrep (SAST), npm audit (HIGH/CRITICAL in runtime dependencies fail), gitleaks over the full history  |
 |                                            | `build`    | production build                                                                                        |
 | [PR title](.github/workflows/pr-title.yml) | `pr-title` | Conventional Commits title ending with `[SIL-<n>]`                                                      |
 
 The coverage report is published in each run's summary.
+
+## Deployment
+
+[Deploy](.github/workflows/deploy.yml) runs after CI passes on `main`. It builds the app for **staging** and
+publishes it automatically, then builds the same commit for **prod** and publishes it after approval in the `prod`
+GitHub environment. The API URL is embedded at build time, so each environment gets its own build.
+
+Each run assumes the environment's deploy role through **GitHub OIDC** (no AWS keys), uploads hashed assets with a
+one-year cache and `index.html` with no cache, invalidates CloudFront, and checks the site. The GitHub environment
+variables (`AWS_DEPLOY_ROLE_ARN`, `S3_BUCKET`, `CLOUDFRONT_DISTRIBUTION_ID`, `VITE_API_BASE_URL`, `APP_URL`,
+`AWS_REGION`) come from the infra repository's Terraform outputs
+([outputs contract](https://github.com/victorkauan/silver-proposals-infra/blob/main/docs/reference/outputs-contract.md)).
 
 ## Build
 

@@ -43,6 +43,42 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+  security:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.13.7'
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # SAST: ERROR-level findings fail.
+      - name: Semgrep
+        run: |
+          uvx --from semgrep==1.183.0 semgrep scan --metrics=off --error --severity ERROR \
+            --config p/typescript --config p/react --config p/secrets src
+
+      # SCA: HIGH and CRITICAL vulnerabilities in runtime dependencies fail; lower ones are reported.
+      - run: npm ci
+      - name: npm audit
+        run: |
+          npm audit --omit=dev || true
+          npm audit --omit=dev --audit-level=high
+
+      - name: gitleaks (full history)
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo \
+            zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            git --redact --verbose /repo
+
   e2e:
     runs-on: ubuntu-24.04
     env:
@@ -66,7 +102,7 @@ jobs:
           docker compose up -d --build --wait db
           docker compose run --rm api alembic upgrade head
           docker compose up -d api
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             curl -fsS http://localhost:8000/ready && exit 0
             sleep 2
           done
@@ -79,8 +115,18 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+
+      # The official image already holds Chromium and its system libraries, so nothing is installed
+      # with apt (that step took from 20 s to 9 min, depending on the package mirrors).
+      - name: Check the Playwright image matches the lockfile
+        run: |
+          locked=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
+          image=$(grep -oE 'playwright:v[0-9.]+' scripts/e2e-docker.sh | cut -d: -f2)
+          echo "lockfile: $locked, image: $image"
+          [ "v$locked" = "$image" ] || { echo "::error::Update the image tag in scripts/e2e-docker.sh to v$locked"; exit 1; }
+
+      - name: Playwright (official image)
+        run: CI=true ./scripts/e2e-docker.sh
 
       - name: API logs
         if: failure()
