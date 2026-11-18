@@ -9,6 +9,7 @@
 | `/propostas/:id`           | members of the proposal                    | Proposal as a document; edit, history, share (owner), regenerate         |
 | `/propostas/:id/editar`    | owners and editors (viewers are sent back) | Markdown editor with live preview                                        |
 | `/propostas/:id/historico` | members of the proposal                    | Version history with document and changes views; restore (owner, editor) |
+| `/p/:token`                | anyone, no login                           | Public, read-only proposal from a share link                             |
 | anything else              |                                            | redirects to `/`                                                         |
 
 The proposal pages are loaded on demand (route-level code splitting), so the Markdown renderer is not part of the
@@ -39,3 +40,15 @@ history is never rewritten.
 Only owners see **Compartilhar**. A link is created with an expiration of 1, 7, 30, or 90 days. The API returns the
 token only once, so the dialog shows the full link right after creation and asks the user to copy it. Links are listed
 with their status (active, expired, revoked) and can be revoked one at a time. Public links have the form `/p/<token>`.
+
+## Public proposal
+
+`/p/:token` calls `GET /public/proposals/{token}` without the `Authorization` header and shows the proposal as a
+client-facing document (cover, table of contents, reading progress), with no app shell and no edit controls.
+"Imprimir / PDF" uses the browser's print dialog; print styles drop the header, outline, and footer, and always use
+the light palette. Unknown, expired, and revoked links all show the same "link unavailable" message, matching the
+API, which answers the same `404` for each. Other errors (rate limit, network) show the API message and a retry.
+
+Because the token is part of the URL, the page sets `<meta name="robots" content="noindex, nofollow">` and
+`<meta name="referrer" content="no-referrer">`, so search engines skip it and links inside the proposal never receive
+the token in the `Referer` header.

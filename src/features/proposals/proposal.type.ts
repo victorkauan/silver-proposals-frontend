@@ -47,3 +47,10 @@ export type ShareLink = {
 }
 
 export type ShareLinkCreated = ShareLink & { token: string }
+
+export type SharedProposal = {
+  title: string
+  client_name: string
+  content: string
+  updated_at: string
+}

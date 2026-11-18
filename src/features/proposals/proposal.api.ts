@@ -5,6 +5,7 @@ import type {
   ProposalPage,
   ShareLink,
   ShareLinkCreated,
+  SharedProposal,
   VersionDetail,
   VersionPage,
 } from '@features/proposals/proposal.type'
@@ -19,6 +20,7 @@ export const proposalKeys = {
   versions: (id: string) => [...proposalKeys.all, 'versions', id] as const,
   version: (id: string, number: number) => [...proposalKeys.versions(id), number] as const,
   shareLinks: (id: string) => [...proposalKeys.all, 'share-links', id] as const,
+  shared: (token: string) => ['shared-proposal', token] as const,
 }
 
 const path = (id: string) => `/proposals/${encodeURIComponent(id)}`
@@ -48,6 +50,11 @@ export const proposalApi = {
     requestJson<void>(`${path(id)}/share-links/${encodeURIComponent(linkId)}`, {
       method: 'DELETE',
     }),
+}
+
+export const publicApi = {
+  get: (token: string) =>
+    requestJson<SharedProposal>(`/public/proposals/${encodeURIComponent(token)}`, { auth: false }),
 }
 
 export function shareUrl(token: string): string {
