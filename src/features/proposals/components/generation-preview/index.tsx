@@ -51,7 +51,9 @@ type GenerationPreviewProps = {
 export function GenerationPreview({ text, meta, onStop }: GenerationPreviewProps) {
   const elapsed = useElapsed()
   const root = useRef<HTMLDivElement>(null)
-  useEffect(() => root.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }), [])
+  useEffect(() => {
+    root.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' })
+  }, [])
   const sections = extractSections(text)
   const writing = text.length > 0
   const steps: Array<{ label: string; state: StepState }> = [

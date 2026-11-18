@@ -59,20 +59,45 @@ npm run lint
 npm run format:check
 npm run typecheck
 npm run test:coverage
-npx playwright install --with-deps chromium   # once
-npm run test:e2e
 ```
+
+## End-to-end tests
+
+The Playwright suite runs against the **real API** with the fake AI provider, so no Bedrock call is ever made.
+It builds the app and serves it on `http://localhost:5173`, the only origin the local API allows for CORS and its
+`SameSite=Strict` refresh cookie. It covers sign-up and login, generating a proposal from a briefing, editing and
+saving it, the version history, and creating, opening, and revoking a share link, plus an unknown share link.
+
+1. Start the backend with Docker Compose and run its migrations (see the backend's
+   [local environment](https://github.com/victorkauan/silver-proposals-backend#local-environment) guide).
+2. Stop `npm run dev` if it is running, because the suite needs port 5173.
+3. Run the suite:
+
+   ```bash
+   npx playwright install --with-deps chromium   # once
+   npm run test:e2e
+   ```
+
+   If your machine cannot run Playwright's browsers (for example, WSL without the system libraries), use the
+   official image instead. It runs inside the API container's network, so the URLs are the same as above:
+
+   ```bash
+   ./scripts/e2e-docker.sh
+   ```
+
+Set `E2E_API_URL` to point the suite at another API. In CI, the `e2e` job checks out the backend's `main` branch,
+starts it with Docker Compose, and runs the same suite.
 
 ## Continuous integration
 
 GitHub Actions runs on every pull request and on every push to `main`:
 
-| Workflow                                   | Job        | Checks                                                           |
-| ------------------------------------------ | ---------- | ---------------------------------------------------------------- |
-| [CI](.github/workflows/ci.yml)             | `quality`  | Prettier, oxlint, TypeScript, Vitest with coverage (minimum 80%) |
-|                                            | `e2e`      | Playwright smoke test on Chromium (report uploaded on failure)   |
-|                                            | `build`    | production build                                                 |
-| [PR title](.github/workflows/pr-title.yml) | `pr-title` | Conventional Commits title ending with `[SIL-<n>]`               |
+| Workflow                                   | Job        | Checks                                                                                                  |
+| ------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------- |
+| [CI](.github/workflows/ci.yml)             | `quality`  | Prettier, oxlint, TypeScript, Vitest with coverage (minimum 80%)                                        |
+|                                            | `e2e`      | Playwright suite on Chromium against the real API (backend `main`, fake AI); report uploaded on failure |
+|                                            | `build`    | production build                                                                                        |
+| [PR title](.github/workflows/pr-title.yml) | `pr-title` | Conventional Commits title ending with `[SIL-<n>]`                                                      |
 
 The coverage report is published in each run's summary.
 
@@ -90,6 +115,7 @@ src/
   @shared/        # cross-cutting code: config/, helpers/, test/, shadcn/ui components (components/ui)
   features/       # one folder per feature; app/ is the current shell
 e2e/              # Playwright end-to-end tests
+scripts/          # e2e-docker.sh: run the e2e suite in the Playwright image
 ```
 
 File names are kebab-case and enforced by oxlint. Components live in folders (`components/proposal-card/index.tsx`),
