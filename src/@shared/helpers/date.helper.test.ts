@@ -13,6 +13,7 @@ describe('date helpers', () => {
 
   it('formats absolute dates in pt-BR', () => {
     expect(formatDate('2026-11-18T12:00:00Z')).toBe('18 de novembro de 2026')
+    expect(formatDate('2026-11-18T12:00:00Z', 'short')).toBe('18 de nov. de 2026')
     expect(formatDateTime('2026-11-18T12:00:00Z')).toMatch(/18 de nov\. de 2026/)
   })
 })

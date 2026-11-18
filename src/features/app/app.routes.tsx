@@ -1,12 +1,11 @@
 import { Navigate, type RouteObject } from 'react-router'
 
+import { FullPageSpinner } from '@shared/components/full-page-spinner'
 import { HomePage } from '@features/app/pages/home'
 import { GuestOnly } from '@features/auth/components/guest-only'
 import { RequireAuth } from '@features/auth/components/require-auth'
 import { LoginPage } from '@features/auth/pages/login'
 import { RegisterPage } from '@features/auth/pages/register'
-import { NewProposalPage } from '@features/proposals/pages/new-proposal'
-import { ProposalPage } from '@features/proposals/pages/proposal'
 
 export const routes: RouteObject[] = [
   {
@@ -18,10 +17,35 @@ export const routes: RouteObject[] = [
   },
   {
     element: <RequireAuth />,
+    hydrateFallbackElement: <FullPageSpinner />,
     children: [
       { path: '/', element: <HomePage /> },
-      { path: '/propostas/nova', element: <NewProposalPage /> },
-      { path: '/propostas/:id', element: <ProposalPage /> },
+      {
+        path: '/propostas/nova',
+        lazy: () =>
+          import('@features/proposals/pages/new-proposal').then((m) => ({
+            Component: m.NewProposalPage,
+          })),
+      },
+      {
+        path: '/propostas/:id',
+        lazy: () =>
+          import('@features/proposals/pages/proposal').then((m) => ({ Component: m.ProposalPage })),
+      },
+      {
+        path: '/propostas/:id/editar',
+        lazy: () =>
+          import('@features/proposals/pages/proposal-editor').then((m) => ({
+            Component: m.ProposalEditorPage,
+          })),
+      },
+      {
+        path: '/propostas/:id/historico',
+        lazy: () =>
+          import('@features/proposals/pages/proposal-history').then((m) => ({
+            Component: m.ProposalHistoryPage,
+          })),
+      },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },
