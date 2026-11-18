@@ -115,8 +115,18 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+
+      # The official image already holds Chromium and its system libraries, so nothing is installed
+      # with apt (that step took from 20 s to 9 min, depending on the package mirrors).
+      - name: Check the Playwright image matches the lockfile
+        run: |
+          locked=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
+          image=$(grep -oE 'playwright:v[0-9.]+' scripts/e2e-docker.sh | cut -d: -f2)
+          echo "lockfile: $locked, image: $image"
+          [ "v$locked" = "$image" ] || { echo "::error::Update the image tag in scripts/e2e-docker.sh to v$locked"; exit 1; }
+
+      - name: Playwright (official image)
+        run: CI=true ./scripts/e2e-docker.sh
 
       - name: API logs
         if: failure()

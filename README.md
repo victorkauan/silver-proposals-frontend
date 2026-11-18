@@ -79,14 +79,16 @@ saving it, the version history, and creating, opening, and revoking a share link
    ```
 
    If your machine cannot run Playwright's browsers (for example, WSL without the system libraries), use the
-   official image instead. It runs inside the API container's network, so the URLs are the same as above:
+   official image instead, which is also how CI runs the suite. It runs inside the API container's network, so the
+   URLs are the same as above:
 
    ```bash
    ./scripts/e2e-docker.sh
    ```
 
 Set `E2E_API_URL` to point the suite at another API. In CI, the `e2e` job checks out the backend's `main` branch,
-starts it with Docker Compose, and runs the same suite.
+starts it with Docker Compose, and runs `scripts/e2e-docker.sh`, so CI and local runs use the same image. The image
+tag must match the `@playwright/test` version in `package-lock.json`; CI fails with a clear message if they differ.
 
 ## Continuous integration
 
