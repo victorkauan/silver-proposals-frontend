@@ -1,8 +1,25 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router'
+
+import { ThemeProvider } from '@shared/components/theme-provider'
+import { routes } from '@features/app/app.routes'
+import { SessionProvider } from '@features/auth/components/session-provider'
+
 export function App() {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } }),
+  )
+  const [router] = useState(() => createBrowserRouter(routes))
+
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-2 p-6 text-center">
-      <h1 className="text-4xl font-semibold tracking-tight">Silver Proposals</h1>
-      <p className="text-muted-foreground">Propostas comerciais com inteligência artificial.</p>
-    </main>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>
+          <RouterProvider router={router} />
+        </SessionProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   )
 }
