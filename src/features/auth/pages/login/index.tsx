@@ -14,7 +14,7 @@ import { AuthLayout } from '@features/auth/components/auth-layout'
 import { useSession } from '@features/auth/session.context'
 
 export function LoginPage() {
-  const { login } = useSession()
+  const { login, notice } = useSession()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/'
@@ -46,6 +46,11 @@ export function LoginPage() {
     >
       <form noValidate onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
         <FieldGroup>
+          {notice === 'account_deleted' && (
+            <p role="status" className="rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+              Sua conta foi excluída. Obrigado por usar o Silver Proposals.
+            </p>
+          )}
           <FormError message={mutation.isError ? errorMessage(mutation.error) : null} />
           <Field data-invalid={!!errors.email}>
             <FieldLabel htmlFor="email">E-mail</FieldLabel>

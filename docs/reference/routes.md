@@ -9,10 +9,14 @@
 | `/propostas/:id`           | members of the proposal                    | Proposal as a document; edit, history, share (owner), regenerate         |
 | `/propostas/:id/editar`    | owners and editors (viewers are sent back) | Markdown editor with live preview                                        |
 | `/propostas/:id/historico` | members of the proposal                    | Version history with document and changes views; restore (owner, editor) |
+| `/conta`                   | logged-in users                            | Redirects to `/conta/perfil`                                             |
+| `/conta/perfil`            | logged-in users                            | Account: name and e-mail (e-mail change asks for the password)           |
+| `/conta/dados`             | logged-in users                            | Privacy notice status, data export, and account deletion                 |
+| `/privacidade`             | anyone                                     | Privacy notice (LGPD)                                                    |
 | `/p/:token`                | anyone, no login                           | Public, read-only proposal from a share link                             |
 | anything else              |                                            | redirects to `/`                                                         |
 
-The proposal pages are loaded on demand (route-level code splitting), so the Markdown renderer is not part of the
+The proposal, account, and privacy pages are loaded on demand (route-level code splitting), so the Markdown renderer is not part of the
 initial bundle.
 
 ## Generation
@@ -52,3 +56,14 @@ API, which answers the same `404` for each. Other errors (rate limit, network) s
 Because the token is part of the URL, the page sets `<meta name="robots" content="noindex, nofollow">` and
 `<meta name="referrer" content="no-referrer">`, so search engines skip it and links inside the proposal never receive
 the token in the `Referer` header.
+
+## Account and privacy
+
+Sign-up requires ticking "Li e aceito o aviso de privacidade"; the link opens `/privacidade` in a new tab. The notice
+text lives in `src/features/privacy/privacy.content.ts`; when it changes, the API's `PRIVACY_NOTICE_VERSION` must change
+too, and every user whose accepted version is older sees a banner at the top of the app until they accept it.
+
+`/conta` has one tab per area (Perfil, Privacidade e dados), each with its own URL. Changing the e-mail and deleting the
+account ask for the current password; deletion also asks the user to type `EXCLUIR`. After deletion the session ends with
+an `account_deleted` notice, and the login page confirms it. The export downloads `silver-proposals-dados.json` from
+`GET /account/export`.

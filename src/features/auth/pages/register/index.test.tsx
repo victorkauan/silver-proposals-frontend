@@ -5,10 +5,11 @@ import { ApiError } from '@shared/api/http.client'
 import { fakeSession, renderRoute } from '@shared/test/render.helper'
 import { RegisterPage } from '@features/auth/pages/register'
 
-async function fill(name: string, email: string, password: string) {
+async function fill(name: string, email: string, password: string, accept = true) {
   if (name) await userEvent.type(screen.getByLabelText('Nome'), name)
   if (email) await userEvent.type(screen.getByLabelText('E-mail'), email)
   if (password) await userEvent.type(screen.getByLabelText('Senha'), password)
+  if (accept) await userEvent.click(screen.getByRole('checkbox', { name: /aviso de privacidade/ }))
   await userEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
 }
 
@@ -33,7 +34,23 @@ describe('RegisterPage', () => {
       name: 'Ana Lima',
       email: 'ana@example.com',
       password: 'uma senha longa',
+      acceptPrivacy: true,
     })
+  })
+
+  it('requires accepting the privacy notice, which opens in a new tab', async () => {
+    const session = fakeSession()
+    renderRoute(<RegisterPage />, { session, path: '/cadastro' })
+
+    await fill('Ana Lima', 'ana@example.com', 'uma senha longa', false)
+
+    expect(
+      await screen.findByText('Aceite o aviso de privacidade para continuar.'),
+    ).toBeInTheDocument()
+    expect(session.register).not.toHaveBeenCalled()
+    const link = screen.getByRole('link', { name: 'aviso de privacidade' })
+    expect(link).toHaveAttribute('href', '/privacidade')
+    expect(link).toHaveAttribute('target', '_blank')
   })
 
   it('shows when the e-mail is already taken', async () => {

@@ -1,10 +1,10 @@
 import { screen, waitFor } from '@testing-library/react'
 
-import { fakeSession, renderRoute } from '@shared/test/render.helper'
+import { fakeSession, renderRoute, fakeUser } from '@shared/test/render.helper'
 import { GuestOnly } from '@features/auth/components/guest-only'
 import { RequireAuth } from '@features/auth/components/require-auth'
 
-const user = { id: '1', email: 'ana@example.com', name: 'Ana' }
+const user = fakeUser({ id: '1', email: 'ana@example.com', name: 'Ana' })
 
 describe('RequireAuth', () => {
   it('shows a spinner while the session loads', () => {

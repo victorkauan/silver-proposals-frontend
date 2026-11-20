@@ -39,6 +39,16 @@ export const routes: RouteObject[] = [
             Component: m.ProposalEditorPage,
           })),
       },
+      { path: '/conta', element: <Navigate to="/conta/perfil" replace /> },
+      {
+        path: '/conta/perfil',
+        lazy: () =>
+          import('@features/account/pages/profile').then((m) => ({ Component: m.ProfilePage })),
+      },
+      {
+        path: '/conta/dados',
+        lazy: () => import('@features/account/pages/data').then((m) => ({ Component: m.DataPage })),
+      },
       {
         path: '/propostas/:id/historico',
         lazy: () =>
@@ -47,6 +57,12 @@ export const routes: RouteObject[] = [
           })),
       },
     ],
+  },
+  {
+    path: '/privacidade',
+    hydrateFallbackElement: <FullPageSpinner />,
+    lazy: () =>
+      import('@features/privacy/pages/privacy').then((m) => ({ Component: m.PrivacyPage })),
   },
   {
     path: '/p/:token',

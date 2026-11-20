@@ -3,8 +3,12 @@ import type { LoginInput, RegisterInput } from '@features/auth/auth.schema'
 import type { TokenResponse } from '@features/auth/auth.type'
 
 export const authApi = {
-  register: (input: RegisterInput) =>
-    requestJson<TokenResponse>('/auth/register', { method: 'POST', body: input, auth: false }),
+  register: ({ acceptPrivacy, ...input }: RegisterInput) =>
+    requestJson<TokenResponse>('/auth/register', {
+      method: 'POST',
+      body: { ...input, accept_privacy: acceptPrivacy },
+      auth: false,
+    }),
   login: (input: LoginInput) =>
     requestJson<TokenResponse>('/auth/login', { method: 'POST', body: input, auth: false }),
   refresh: () => requestJson<TokenResponse>('/auth/refresh', { method: 'POST', auth: false }),

@@ -2,14 +2,14 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { stubApi } from '@shared/test/fetch.helper'
-import { fakeSession, renderRoute } from '@shared/test/render.helper'
+import { fakeSession, renderRoute, fakeUser } from '@shared/test/render.helper'
 import { jsonResponse, sseEvent, sseResponse } from '@shared/test/sse.helper'
 import { NewProposalPage } from '@features/proposals/pages/new-proposal'
 
 const session = () =>
   fakeSession({
     status: 'authenticated',
-    user: { id: '1', email: 'ana@example.com', name: 'Ana Lima' },
+    user: fakeUser({ id: '1', email: 'ana@example.com', name: 'Ana Lima' }),
   })
 
 const created = () =>

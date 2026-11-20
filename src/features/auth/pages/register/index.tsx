@@ -24,7 +24,7 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: '', email: '', password: '' },
+    defaultValues: { name: '', email: '', password: '', acceptPrivacy: false },
   })
   const mutation = useMutation({
     mutationFn: (values: RegisterInput) => register(values),
@@ -85,6 +85,34 @@ export function RegisterPage() {
             />
             <FieldDescription>Mínimo de 8 caracteres.</FieldDescription>
             <FieldError errors={[errors.password]} />
+          </Field>
+          <Field
+            orientation="horizontal"
+            className="items-start"
+            data-invalid={!!errors.acceptPrivacy}
+          >
+            <input
+              id="accept-privacy"
+              type="checkbox"
+              className="mt-0.5 size-4 shrink-0 accent-primary"
+              aria-invalid={!!errors.acceptPrivacy}
+              {...form.register('acceptPrivacy')}
+            />
+            <div className="grid gap-1">
+              <FieldLabel htmlFor="accept-privacy" className="font-normal">
+                <span>
+                  Li e aceito o{' '}
+                  <Link
+                    to="/privacidade"
+                    target="_blank"
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
+                    aviso de privacidade
+                  </Link>
+                </span>
+              </FieldLabel>
+              <FieldError errors={[errors.acceptPrivacy]} />
+            </div>
           </Field>
           <Button type="submit" disabled={mutation.isPending} className="w-full">
             {mutation.isPending && <Spinner />}

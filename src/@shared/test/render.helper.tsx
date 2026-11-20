@@ -5,15 +5,31 @@ import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-rout
 
 import { ThemeProvider } from '@shared/components/theme-provider'
 import { Toaster } from '@shared/components/ui/sonner'
+import type { User } from '@features/auth/auth.type'
 import { type Session, SessionContext } from '@features/auth/session.context'
+
+export function fakeUser(overrides: Partial<User> = {}): User {
+  return {
+    id: '1',
+    email: 'ana@example.com',
+    name: 'Ana Lima',
+    created_at: '2026-11-01T12:00:00Z',
+    privacy_up_to_date: true,
+    privacy_accepted_at: '2026-11-01T12:00:00Z',
+    ...overrides,
+  }
+}
 
 export function fakeSession(overrides: Partial<Session> = {}): Session {
   return {
     status: 'anonymous',
     user: null,
+    notice: null,
     login: vi.fn(async () => {}),
     register: vi.fn(async () => {}),
     logout: vi.fn(async () => {}),
+    setUser: vi.fn(),
+    endSession: vi.fn(),
     ...overrides,
   }
 }
