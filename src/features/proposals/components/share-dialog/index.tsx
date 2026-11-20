@@ -71,6 +71,8 @@ function LinkRow({ link, proposalId }: { link: ShareLink; proposalId: string }) 
     mutationFn: () => proposalApi.revokeShareLink(proposalId, link.id),
     onSuccess: async () => {
       void queryClient.invalidateQueries({ queryKey: proposalKeys.dashboard() })
+      void queryClient.invalidateQueries({ queryKey: proposalKeys.detail(proposalId) })
+      void queryClient.invalidateQueries({ queryKey: proposalKeys.list() })
       await queryClient.invalidateQueries({ queryKey: proposalKeys.shareLinks(proposalId) })
       toast.success('Link revogado', { description: 'Ele parou de funcionar imediatamente.' })
     },
@@ -133,6 +135,8 @@ function ShareContent({ proposalId }: { proposalId: string }) {
     onSuccess: async (link) => {
       setCreated(shareUrl(link.token))
       void queryClient.invalidateQueries({ queryKey: proposalKeys.dashboard() })
+      void queryClient.invalidateQueries({ queryKey: proposalKeys.detail(proposalId) })
+      void queryClient.invalidateQueries({ queryKey: proposalKeys.list() })
       await queryClient.invalidateQueries({ queryKey: proposalKeys.shareLinks(proposalId) })
     },
     onError: (error) =>

@@ -17,6 +17,7 @@ import {
 import { Skeleton } from '@shared/components/ui/skeleton'
 import { formatDate, formatRelative } from '@shared/helpers/date.helper'
 import { AppShell } from '@features/app/components/app-shell'
+import { ProposalStatusBadge } from '@features/proposals/components/proposal-status-badge'
 import { DocumentSheet } from '@features/proposals/components/document-sheet'
 import { GenerationPreview } from '@features/proposals/components/generation-preview'
 import { MarkdownView } from '@features/proposals/components/markdown-view'
@@ -97,9 +98,7 @@ function ProposalView({ proposal }: { proposal: ProposalDetail }) {
         <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <Badge variant={hasContent ? 'secondary' : 'outline'}>
-                {hasContent ? 'Rascunho' : 'Sem conteúdo'}
-              </Badge>
+              <ProposalStatusBadge status={proposal.status} />
               {!canEdit && (
                 <Badge variant="outline">
                   <Eye />

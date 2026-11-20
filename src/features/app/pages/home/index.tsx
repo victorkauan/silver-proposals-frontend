@@ -27,14 +27,9 @@ import {
 } from '@features/app/dashboard.api'
 import { useSession } from '@features/auth/session.context'
 import { proposalKeys } from '@features/proposals/proposal.api'
+import { PROPOSAL_STATUS_LABEL } from '@features/proposals/proposal-status.constant'
 
-const STATUS_LABELS: Record<ProposalStatus, string> = {
-  draft: 'Rascunho',
-  generated: 'Gerada',
-  edited: 'Editada',
-  shared: 'Compartilhada',
-  archived: 'Arquivada',
-}
+const STATUS_LABELS: Record<ProposalStatus, string> = PROPOSAL_STATUS_LABEL
 
 const STATUS_ORDER = ['draft', 'generated', 'edited', 'shared', 'archived'] as const
 const STATUS_COLORS = {

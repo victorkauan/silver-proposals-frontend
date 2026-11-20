@@ -9,7 +9,7 @@ export function RequireAuth() {
 
   if (status === 'loading') return <FullPageSpinner />
   if (status === 'anonymous') {
-    return <Navigate to="/entrar" replace state={{ from: location.pathname }} />
+    return <Navigate to="/entrar" replace state={{ from: location.pathname + location.search }} />
   }
   return <Outlet />
 }

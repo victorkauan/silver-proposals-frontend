@@ -1,10 +1,12 @@
 export type ProposalRole = 'owner' | 'editor' | 'viewer'
+export type ProposalStatus = 'draft' | 'generated' | 'edited' | 'shared' | 'archived'
 
 export type ProposalSummary = {
   id: string
   title: string
   client_name: string
   role: ProposalRole
+  status: ProposalStatus
   archived_at: string | null
   updated_at: string
 }

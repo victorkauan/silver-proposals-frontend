@@ -11,12 +11,17 @@ import type {
 } from '@features/proposals/proposal.type'
 
 export const LIST_LIMIT = 100
+export const PAGE_SIZES = [5, 10, 20, 50] as const
+export const DEFAULT_PAGE_SIZE = 5
 export const CONTENT_MAX_LENGTH = 200_000
 
 export const proposalKeys = {
   all: ['proposals'] as const,
   dashboard: () => [...proposalKeys.all, 'dashboard'] as const,
-  list: () => [...proposalKeys.all, 'list'] as const,
+  list: (params?: ListParams) =>
+    params
+      ? ([...proposalKeys.all, 'list', params] as const)
+      : ([...proposalKeys.all, 'list'] as const),
   detail: (id: string) => [...proposalKeys.all, 'detail', id] as const,
   versions: (id: string) => [...proposalKeys.all, 'versions', id] as const,
   version: (id: string, number: number) => [...proposalKeys.versions(id), number] as const,
@@ -24,11 +29,20 @@ export const proposalKeys = {
   shared: (token: string) => ['shared-proposal', token] as const,
 }
 
+export type ListParams = { q: string; page: number; size: number }
+
 const path = (id: string) => `/proposals/${encodeURIComponent(id)}`
 
 export const proposalApi = {
   dashboard: () => [...proposalKeys.all, 'dashboard'] as const,
-  list: () => requestJson<ProposalPage>(`/proposals?limit=${LIST_LIMIT}`),
+  list: ({ q, page, size }: ListParams) => {
+    const params = new URLSearchParams({
+      limit: String(size),
+      offset: String((page - 1) * size),
+    })
+    if (q) params.set('q', q)
+    return requestJson<ProposalPage>(`/proposals?${params}`)
+  },
   get: (id: string) => requestJson<ProposalDetail>(path(id)),
   create: (input: ProposalInput) =>
     requestJson<ProposalDetail>('/proposals', { method: 'POST', body: input }),

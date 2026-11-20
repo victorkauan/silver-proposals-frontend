@@ -20,6 +20,16 @@ describe('RequireAuth', () => {
     expect(router.state.location.state).toEqual({ from: '/propostas' })
   })
 
+  it('keeps the search and page of the address it remembers', async () => {
+    const { router } = renderRoute(<RequireAuth />, {
+      path: '/propostas',
+      initialEntries: ['/propostas?q=padaria&pagina=2'],
+    })
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/entrar'))
+    expect(router.state.location.state).toEqual({ from: '/propostas?q=padaria&pagina=2' })
+  })
+
   it('renders the page for authenticated users', () => {
     renderRoute(<RequireAuth />, {
       session: fakeSession({ status: 'authenticated', user }),
