@@ -15,6 +15,7 @@ export const CONTENT_MAX_LENGTH = 200_000
 
 export const proposalKeys = {
   all: ['proposals'] as const,
+  dashboard: () => [...proposalKeys.all, 'dashboard'] as const,
   list: () => [...proposalKeys.all, 'list'] as const,
   detail: (id: string) => [...proposalKeys.all, 'detail', id] as const,
   versions: (id: string) => [...proposalKeys.all, 'versions', id] as const,
@@ -26,6 +27,7 @@ export const proposalKeys = {
 const path = (id: string) => `/proposals/${encodeURIComponent(id)}`
 
 export const proposalApi = {
+  dashboard: () => [...proposalKeys.all, 'dashboard'] as const,
   list: () => requestJson<ProposalPage>(`/proposals?limit=${LIST_LIMIT}`),
   get: (id: string) => requestJson<ProposalDetail>(path(id)),
   create: (input: ProposalInput) =>

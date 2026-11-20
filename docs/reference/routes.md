@@ -1,21 +1,22 @@
 # Routes
 
-| Path                       | Access                                     | Page                                                                     |
-| -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
-| `/entrar`                  | visitors only (logged-in users go to `/`)  | Login                                                                    |
-| `/cadastro`                | visitors only                              | Sign-up                                                                  |
-| `/`                        | logged-in users (visitors go to `/entrar`) | Proposal list (empty state with getting-started steps)                   |
-| `/propostas/nova`          | logged-in users                            | New proposal: briefing form, then live AI generation                     |
-| `/propostas/:id`           | members of the proposal                    | Proposal as a document; edit, history, share (owner), regenerate         |
-| `/propostas/:id/editar`    | owners and editors (viewers are sent back) | Markdown editor with live preview                                        |
-| `/propostas/:id/historico` | members of the proposal                    | Version history with document and changes views; restore (owner, editor) |
-| `/conta`                   | logged-in users                            | Redirects to `/conta/perfil`                                             |
-| `/conta/perfil`            | logged-in users                            | Account: name and e-mail (e-mail change asks for the password)           |
-| `/conta/seguranca`         | logged-in users                            | Two-factor authentication, password change, and active sessions          |
-| `/conta/dados`             | logged-in users                            | Privacy notice status, data export, and account deletion                 |
-| `/privacidade`             | anyone                                     | Privacy notice (LGPD)                                                    |
-| `/p/:token`                | anyone, no login                           | Public, read-only proposal from a share link                             |
-| anything else              |                                            | redirects to `/`                                                         |
+| Path                       | Access                                     | Page                                                                       |
+| -------------------------- | ------------------------------------------ | -------------------------------------------------------------------------- |
+| `/entrar`                  | visitors only (logged-in users go to `/`)  | Login                                                                      |
+| `/cadastro`                | visitors only                              | Sign-up                                                                    |
+| `/`                        | logged-in users (visitors go to `/entrar`) | Início dashboard with status totals, recent proposals, links, and activity |
+| `/propostas`               | logged-in users                            | Searchable proposal list                                                   |
+| `/propostas/nova`          | logged-in users                            | New proposal: briefing form, then live AI generation                       |
+| `/propostas/:id`           | members of the proposal                    | Proposal as a document; edit, history, share (owner), regenerate           |
+| `/propostas/:id/editar`    | owners and editors (viewers are sent back) | Markdown editor with live preview                                          |
+| `/propostas/:id/historico` | members of the proposal                    | Version history with document and changes views; restore (owner, editor)   |
+| `/conta`                   | logged-in users                            | Redirects to `/conta/perfil`                                               |
+| `/conta/perfil`            | logged-in users                            | Account: name and e-mail (e-mail change asks for the password)             |
+| `/conta/seguranca`         | logged-in users                            | Two-factor authentication, password change, and active sessions            |
+| `/conta/dados`             | logged-in users                            | Privacy notice status, data export, and account deletion                   |
+| `/privacidade`             | anyone                                     | Privacy notice (LGPD)                                                      |
+| `/p/:token`                | anyone, no login                           | Public, read-only proposal from a share link                               |
+| anything else              |                                            | redirects to `/`                                                           |
 
 The proposal, account, and privacy pages are loaded on demand (route-level code splitting), so the Markdown renderer is not part of the
 initial bundle.
@@ -83,3 +84,12 @@ page. If the challenge expires, they must enter their password again.
 
 Active sessions show the browser, last activity, and a marker for the current session. Users can end individual
 sessions, including the current one, or end all others. Password changes also end all other sessions.
+
+## Home dashboard
+
+The signed-in landing page uses `GET /dashboard/summary`. The sidebar links to **Início** and **Propostas**.
+**Minha conta** is available in the sidebar footer. **Ver todas** opens the searchable proposal list.
+
+The status distribution groups each visible proposal under one status, including archived proposals. The AI count
+covers the signed-in user's generations in the past 30 days. Link counts and link activity cover owned proposals,
+and the expiry window is seven days. Dashboard links go to the proposal page for management.

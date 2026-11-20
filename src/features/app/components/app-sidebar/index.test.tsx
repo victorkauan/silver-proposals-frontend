@@ -24,7 +24,7 @@ describe('AppSidebar', () => {
       within(nav as HTMLElement)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Propostas'])
+    ).toEqual(['Início', 'Propostas'])
 
     await userEvent.click(screen.getByRole('button', { name: /ana@example.com/ }))
     expect(await screen.findByRole('menuitem', { name: 'Minha conta' })).toHaveAttribute(

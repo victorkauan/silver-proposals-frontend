@@ -2,34 +2,75 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { stubApi } from '@shared/test/fetch.helper'
-import { fakeSession, renderRoute, fakeUser } from '@shared/test/render.helper'
+import { fakeSession, fakeUser, renderRoute } from '@shared/test/render.helper'
 import { jsonResponse } from '@shared/test/sse.helper'
+import type { DashboardSummary } from '@features/app/dashboard.api'
 import { HomePage } from '@features/app/pages/home'
 
-const user = fakeUser({ id: '1', email: 'ana@example.com', name: 'Ana Lima' })
-const session = () => fakeSession({ status: 'authenticated', user })
-const empty = () => jsonResponse(200, { items: [], total: 0 })
-
-const proposals = {
-  items: [
+const session = () => fakeSession({ status: 'authenticated', user: fakeUser() })
+const when = '2026-11-20T12:00:00Z'
+const empty: DashboardSummary = {
+  proposal_counts: { draft: 0, generated: 0, edited: 0, shared: 0, archived: 0 },
+  generations_last_30_days: 0,
+  active_link_count: 0,
+  expiring_link_count: 0,
+  recent_proposals: [],
+  active_links: [],
+  recent_activity: [],
+}
+const populated: DashboardSummary = {
+  ...empty,
+  proposal_counts: { draft: 1, generated: 2, edited: 1, shared: 1, archived: 1 },
+  generations_last_30_days: 3,
+  active_link_count: 2,
+  expiring_link_count: 1,
+  recent_proposals: [
     {
       id: 'p-1',
       title: 'Site institucional',
-      client_name: 'Padaria Pão Quente',
+      client_name: 'Padaria',
       role: 'owner',
-      archived_at: null,
-      updated_at: '2026-11-17T12:00:00Z',
+      status: 'shared',
+      updated_at: when,
     },
     {
       id: 'p-2',
       title: 'App de pedidos',
-      client_name: 'Mercado Bom Preço',
+      client_name: 'Mercado',
       role: 'editor',
-      archived_at: null,
-      updated_at: '2026-11-16T12:00:00Z',
+      status: 'edited',
+      updated_at: when,
+    },
+    {
+      id: 'p-3',
+      title: 'Pesquisa',
+      client_name: 'Estúdio',
+      role: 'viewer',
+      status: 'generated',
+      updated_at: when,
     },
   ],
-  total: 2,
+  active_links: [
+    { id: 'l-1', proposal_id: 'p-1', proposal_title: 'Site institucional', expires_at: when },
+  ],
+  recent_activity: [
+    {
+      event_id: 'v-1',
+      kind: 'edited',
+      proposal_id: 'p-2',
+      proposal_title: 'App de pedidos',
+      occurred_at: when,
+      version: 2,
+    },
+    {
+      event_id: 'l-1',
+      kind: 'link_created',
+      proposal_id: 'p-1',
+      proposal_title: 'Site institucional',
+      occurred_at: when,
+      version: null,
+    },
+  ],
 }
 
 describe('HomePage', () => {
@@ -40,86 +81,79 @@ describe('HomePage', () => {
 
   afterEach(() => vi.unstubAllGlobals())
 
-  it('greets the user and shows the empty state with getting-started steps', async () => {
-    stubApi({ 'GET /proposals': empty })
+  it('shows loading and the first-proposal action for a new account', async () => {
+    stubApi({ 'GET /dashboard/summary': () => jsonResponse(200, empty) })
     renderRoute(<HomePage />, { session: session() })
 
     expect(screen.getByRole('heading', { name: 'Olá, Ana' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Carregando propostas')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Carregando painel' })).toBeInTheDocument()
     expect(await screen.findByText('Nenhuma proposta ainda')).toBeInTheDocument()
-    const steps = within(screen.getByRole('region', { name: 'Primeiros passos' }))
-    expect(
-      steps.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
-    ).toEqual(['Escreva o briefing', 'Gere com IA', 'Edite e compartilhe'])
     expect(screen.getByRole('link', { name: 'Criar primeira proposta' })).toHaveAttribute(
       'href',
       '/propostas/nova',
     )
-    expect(screen.getByText('AL')).toBeInTheDocument()
+    expect(screen.getByText('Nenhum link ativo em propostas que você possui.')).toBeInTheDocument()
+    expect(screen.getByText('Versões e alterações em links aparecem aqui.')).toBeInTheDocument()
   })
 
-  it('lists the proposals with links, and hides the getting-started steps', async () => {
-    stubApi({ 'GET /proposals': () => jsonResponse(200, proposals) })
+  it('renders aggregate counts and role-aware links to proposals, links and activity', async () => {
+    stubApi({ 'GET /dashboard/summary': () => jsonResponse(200, populated) })
     renderRoute(<HomePage />, { session: session() })
 
-    const first = await screen.findByRole('link', { name: /Site institucional/ })
-    expect(first).toHaveAttribute('href', '/propostas/p-1')
-    expect(first).toHaveTextContent('Padaria Pão Quente')
-    expect(screen.getByRole('link', { name: /App de pedidos/ })).toHaveTextContent('Editor')
-    expect(screen.getByRole('link', { name: 'Nova proposta' })).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Primeiros passos' })).not.toBeInTheDocument()
+    const recent = within(await screen.findByRole('region', { name: 'Propostas recentes' }))
+    expect(recent.getByRole('link', { name: /Site institucional/ })).toHaveTextContent(
+      'Compartilhada',
+    )
+    expect(recent.getByRole('link', { name: /App de pedidos/ })).toHaveTextContent('Editor')
+    expect(recent.getByRole('link', { name: /Pesquisa/ })).toHaveTextContent('Leitor')
+    expect(recent.getByRole('link', { name: /Ver todas/ })).toHaveAttribute('href', '/propostas')
+    expect(screen.getByText('Propostas', { selector: 'dt' }).parentElement).toHaveTextContent('6')
+    expect(screen.getByRole('region', { name: 'Propostas por situação' })).toHaveTextContent(
+      'Gerada2',
+    )
+    const sharing = within(screen.getByRole('region', { name: 'Links de compartilhamento' }))
+    expect(sharing.getByRole('link', { name: /Site institucional/ })).toHaveAttribute(
+      'href',
+      '/propostas/p-1',
+    )
+    const activity = within(screen.getByRole('region', { name: 'Atividade recente' }))
+    expect(activity.getByRole('link', { name: /Versão editada.*v2/ })).toHaveAttribute(
+      'href',
+      '/propostas/p-2',
+    )
+    expect(activity.getByText('Link criado')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Nenhuma proposta ainda' }),
+    ).not.toBeInTheDocument()
   })
 
-  it('filters the list by title or client, ignoring accents', async () => {
-    stubApi({ 'GET /proposals': () => jsonResponse(200, proposals) })
-    renderRoute(<HomePage />, { session: session() })
-
-    const search = await screen.findByRole('searchbox', { name: 'Buscar propostas' })
-    await userEvent.type(search, 'pao')
-
-    expect(screen.getByRole('link', { name: /Site institucional/ })).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /App de pedidos/ })).not.toBeInTheDocument()
-
-    await userEvent.clear(search)
-    await userEvent.type(search, 'xyz')
-    expect(screen.getByText('Nenhuma proposta encontrada para “xyz”.')).toBeInTheDocument()
-  })
-
-  it('shows the API error and retries', async () => {
+  it('shows request errors and reloads the dashboard', async () => {
     let calls = 0
     stubApi({
-      'GET /proposals': () =>
+      'GET /dashboard/summary': () =>
         ++calls === 1
           ? jsonResponse(500, { code: 'internal_error', message: 'Erro interno. Tente novamente.' })
-          : empty(),
+          : jsonResponse(200, empty),
     })
     renderRoute(<HomePage />, { session: session() })
 
     expect(await screen.findByText('Erro interno. Tente novamente.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
-
     expect(await screen.findByText('Nenhuma proposta ainda')).toBeInTheDocument()
   })
 
-  it('logs out from the user menu', async () => {
-    stubApi({ 'GET /proposals': empty })
+  it('allows signing out and changing the theme from the account menu', async () => {
+    stubApi({ 'GET /dashboard/summary': () => jsonResponse(200, empty) })
     const current = session()
     renderRoute(<HomePage />, { session: current })
 
     await userEvent.click(screen.getByText('ana@example.com'))
-    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sair' }))
-
-    expect(current.logout).toHaveBeenCalledOnce()
-  })
-
-  it('switches to the dark theme and remembers it', async () => {
-    stubApi({ 'GET /proposals': empty })
-    renderRoute(<HomePage />, { session: session() })
-
-    await userEvent.click(screen.getByText('ana@example.com'))
     await userEvent.click(await screen.findByRole('menuitemradio', { name: 'Escuro' }))
-
     await waitFor(() => expect(document.documentElement).toHaveClass('dark'))
     expect(localStorage.getItem('silver-proposals-theme')).toBe('dark')
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(screen.getByRole('button', { name: /ana@example.com/ }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sair' }))
+    expect(current.logout).toHaveBeenCalledOnce()
   })
 })

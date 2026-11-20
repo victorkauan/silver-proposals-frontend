@@ -76,6 +76,34 @@ test('signs up, generates, edits, and shares a proposal', async ({ page, browser
     shareUrl = await field.inputValue()
   })
 
+  await test.step('check the home dashboard and the separate proposal list', async () => {
+    await page.keyboard.press('Escape')
+    await page.getByRole('link', { name: 'Início', exact: true }).click()
+    await expect(page).toHaveURL('/')
+    const recent = page.getByRole('region', { name: 'Propostas recentes' })
+    await expect(recent.getByRole('link', { name: new RegExp(title) })).toContainText(
+      'Compartilhada',
+    )
+    const sharing = page.getByRole('region', { name: 'Links de compartilhamento' })
+    await expect(sharing.getByRole('link', { name: new RegExp(title) })).toContainText('Expira em')
+    await expect(page.getByRole('region', { name: 'Atividade recente' })).toContainText(
+      'Link criado',
+    )
+    await expect(page.getByRole('region', { name: 'Atividade recente' })).toContainText(
+      'Versão editada',
+    )
+    await expect(page.getByText('Gerações com IA', { exact: true }).locator('..')).toContainText(
+      '1',
+    )
+
+    await recent.getByRole('link', { name: 'Ver todas' }).click()
+    await expect(page).toHaveURL('/propostas')
+    await expect(page.getByRole('heading', { level: 1, name: 'Propostas' })).toBeVisible()
+    await page.getByRole('searchbox', { name: 'Buscar propostas' }).fill(title)
+    await page.getByRole('link', { name: new RegExp(title) }).click()
+    await page.getByRole('button', { name: 'Compartilhar' }).click()
+  })
+
   const visitor = await browser.newContext()
   const publicPage = await visitor.newPage()
 
@@ -93,11 +121,36 @@ test('signs up, generates, edits, and shares a proposal', async ({ page, browser
     await dialog.getByRole('button', { name: 'Revogar' }).click()
     await dialog.getByRole('button', { name: 'Confirmar' }).click()
     await expect(page.getByText('Link revogado')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.getByRole('link', { name: 'Início', exact: true }).click()
+    await expect(page.getByRole('region', { name: 'Links de compartilhamento' })).toContainText(
+      'Nenhum link ativo',
+    )
+    await expect(page.getByRole('region', { name: 'Atividade recente' })).toContainText(
+      'Link revogado',
+    )
+    await expect(page.getByRole('region', { name: 'Propostas recentes' })).toContainText('Editada')
 
     await publicPage.reload()
     await expect(
       publicPage.getByRole('heading', { name: 'Este link não está disponível' }),
     ).toBeVisible()
+  })
+
+  await test.step('opens the mobile navigation and switches the dashboard to dark mode', async () => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    const trigger = page.getByRole('button', { name: 'Alternar menu lateral' })
+    await trigger.click()
+    const menu = page.getByRole('dialog', { name: 'Menu lateral' })
+    await expect(menu.getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page')
+    await expect(menu.getByRole('link', { name: 'Propostas', exact: true })).toBeVisible()
+    await menu.getByRole('button', { name: new RegExp(email) }).click()
+    await expect(page.getByRole('menuitem', { name: 'Minha conta' })).toBeVisible()
+    await page.getByRole('menuitemradio', { name: 'Escuro' }).click()
+    await expect(page.locator('html')).toHaveClass(/dark/)
+    await menu.getByRole('link', { name: 'Propostas', exact: true }).click()
+    await expect(page).toHaveURL('/propostas')
+    await expect(menu).not.toBeVisible()
   })
 
   await visitor.close()

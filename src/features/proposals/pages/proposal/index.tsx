@@ -26,7 +26,7 @@ import { proposalApi, proposalKeys } from '@features/proposals/proposal.api'
 import type { ProposalDetail } from '@features/proposals/proposal.type'
 import { useGeneration } from '@features/proposals/use-generation.hook'
 
-const PARENTS = [{ label: 'Propostas', to: '/' }]
+const PARENTS = [{ label: 'Propostas', to: '/propostas' }]
 
 export function ProposalPage() {
   const { id = '' } = useParams()
@@ -58,7 +58,10 @@ export function ProposalPage() {
             </AlertDescription>
             <AlertAction>
               {notFound ? (
-                <Link to="/" className={buttonVariants({ size: 'sm', variant: 'outline' })}>
+                <Link
+                  to="/propostas"
+                  className={buttonVariants({ size: 'sm', variant: 'outline' })}
+                >
                   Voltar às propostas
                 </Link>
               ) : (
