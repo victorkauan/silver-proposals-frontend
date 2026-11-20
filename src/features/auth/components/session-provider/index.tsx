@@ -54,7 +54,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const session = useMemo<Session>(
     () => ({
       ...state,
-      login: async (input) => apply(await authApi.login(input)),
+      login: async (input) => {
+        const data = await authApi.login(input)
+        if ('two_factor_required' in data) {
+          return { status: 'two_factor', challengeToken: data.challenge_token }
+        }
+        apply(data)
+        return { status: 'signed_in' }
+      },
+      completeTwoFactor: async (challengeToken, code) =>
+        apply(await authApi.loginTwoFactor(challengeToken, code)),
       register: async (input) => apply(await authApi.register(input)),
       logout: async () => {
         try {

@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 
 import type { LoginInput, RegisterInput } from '@features/auth/auth.schema'
-import type { User } from '@features/auth/auth.type'
+import type { LoginResult, User } from '@features/auth/auth.type'
 
 export type SessionStatus = 'loading' | 'authenticated' | 'anonymous'
 export type SessionNotice = 'account_deleted'
@@ -10,7 +10,8 @@ export type Session = {
   status: SessionStatus
   user: User | null
   notice: SessionNotice | null
-  login: (input: LoginInput) => Promise<void>
+  login: (input: LoginInput) => Promise<LoginResult>
+  completeTwoFactor: (challengeToken: string, code: string) => Promise<void>
   register: (input: RegisterInput) => Promise<void>
   logout: () => Promise<void>
   setUser: (user: User) => void

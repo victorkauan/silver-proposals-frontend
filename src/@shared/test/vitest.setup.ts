@@ -13,3 +13,8 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 })
+
+Object.defineProperty(document, 'elementFromPoint', {
+  configurable: true,
+  value: () => null,
+})
