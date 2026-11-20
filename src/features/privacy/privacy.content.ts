@@ -31,8 +31,16 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
           'Criar sua conta, permitir o login e identificar o autor de cada versão. Execução de contrato.',
         ],
         [
-          'Sessões: data de criação, validade e uso (o token fica só como hash)',
+          'Sessões: navegador, data de criação, validade, uso e revogação (o token fica só como hash)',
           'Manter você conectado e detectar o uso de sessões roubadas. Execução de contrato e legítimo interesse em segurança.',
+        ],
+        [
+          'Verificação em duas etapas: chave do autenticador cifrada e códigos de recuperação guardados como hash',
+          'Proteger o login contra o uso indevido de uma senha. Legítimo interesse em segurança.',
+        ],
+        [
+          'Registros de acesso: endereço IP, data, hora e informações da requisição',
+          'Registrar acessos quando a coleta estiver habilitada. Cumprimento de obrigação legal e segurança do serviço.',
         ],
         [
           'Propostas: título, cliente, briefing, conteúdo e histórico de versões',
@@ -53,7 +61,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
       ],
     },
     paragraphs: [
-      'Não registramos senhas, tokens, briefings nem o conteúdo das propostas nos logs, e os rastreamentos de desempenho não guardam o seu endereço IP.',
+      'Os logs da aplicação não registram senhas, tokens, briefings nem o conteúdo das propostas. Os rastreamentos de desempenho não guardam o seu endereço IP. Os registros de acesso do balanceador podem conter o IP e a URL solicitada.',
     ],
   },
   {
@@ -74,7 +82,12 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
         ['Propostas e versões', 'Até a proposta ou a conta ser excluída.'],
         ['Links de compartilhamento', 'De 1 a 90 dias de validade, à sua escolha.'],
         ['Registros técnicos', '14 dias nos logs e 30 dias nos rastreamentos de desempenho.'],
-        ['Cópias de segurança', '1 dia.'],
+        ['Registros de acesso', 'Por seis meses quando a coleta estiver habilitada.'],
+        ['Verificação em duas etapas', 'Até você desativar a verificação ou excluir a conta.'],
+        [
+          'Cópias de segurança',
+          'Cópias automáticas do banco por 1 dia. Quando a rotina de cópias diárias estiver habilitada, elas são mantidas por 14 dias.',
+        ],
       ],
     },
   },
@@ -91,16 +104,16 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     id: 'transferencia',
     title: 'Transferência internacional',
     paragraphs: [
-      'Os dados são armazenados e processados nos Estados Unidos, na infraestrutura da AWS (região us-east-1) e no Amazon Bedrock. Essa transferência internacional segue o art. 33 da LGPD.',
+      'Os dados são armazenados e processados nos Estados Unidos, na infraestrutura da AWS (região us-east-1) e no Amazon Bedrock. Essa transferência internacional está sujeita ao art. 33 da LGPD.',
     ],
   },
   {
     id: 'seguranca',
     title: 'Como protegemos seus dados',
     items: [
-      'Criptografia em trânsito (TLS) em todas as conexões e em repouso no banco de dados, nos arquivos e nos segredos.',
+      'Criptografia em trânsito (TLS) nas conexões públicas e com o banco de dados. Criptografia em repouso no banco, nos arquivos e nos segredos.',
       'Controle de acesso por proposta (dono, editor e leitor) e links públicos com validade e revogação.',
-      'Senhas com Argon2id, sessões curtas e renováveis, e acesso à nuvem sem chaves fixas.',
+      'Senhas com Argon2id, verificação em duas etapas opcional, sessões revogáveis e acesso à nuvem sem chaves fixas.',
       'Monitoramento com alertas e uma esteira que verifica a segurança de cada mudança antes de ela chegar ao ar.',
     ],
   },

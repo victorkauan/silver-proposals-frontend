@@ -49,7 +49,7 @@ with their status (active, expired, revoked) and can be revoked one at a time. P
 
 ## Public proposal
 
-`/p/:token` calls `GET /public/proposals/{token}` without the `Authorization` header and shows the proposal as a
+`/p/:token` calls `POST /public/proposals/resolve` with the token in its JSON body, and shows the proposal as a
 client-facing document (cover, table of contents, reading progress), with no app shell and no edit controls.
 "Imprimir / PDF" uses the browser's print dialog; print styles drop the header, outline, and footer, and always use
 the light palette. Unknown, expired, and revoked links all show the same "link unavailable" message, matching the

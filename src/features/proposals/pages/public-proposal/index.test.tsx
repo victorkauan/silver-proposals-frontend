@@ -27,7 +27,7 @@ describe('PublicProposalPage', () => {
 
   it('shows the shared proposal read-only, without sending credentials', async () => {
     setAccessToken('token-of-a-logged-in-user')
-    const fetchMock = stubApi({ 'GET /public/proposals/tok-123': () => jsonResponse(200, shared) })
+    const fetchMock = stubApi({ 'POST /public/proposals/resolve': () => jsonResponse(200, shared) })
     render()
 
     expect(
@@ -45,10 +45,11 @@ describe('PublicProposalPage', () => {
     }
     const headers = (fetchMock.mock.calls[0][1]?.headers ?? {}) as Record<string, string>
     expect(headers.Authorization).toBeUndefined()
+    expect(fetchMock.mock.calls[0][1]?.body).toBe(JSON.stringify({ token: 'tok-123' }))
   })
 
   it('keeps the page out of search engines and the token out of the Referer', async () => {
-    stubApi({ 'GET /public/proposals/tok-123': () => jsonResponse(200, shared) })
+    stubApi({ 'POST /public/proposals/resolve': () => jsonResponse(200, shared) })
     render()
 
     await screen.findByRole('heading', { level: 1, name: 'Site institucional' })
@@ -65,7 +66,7 @@ describe('PublicProposalPage', () => {
 
   it('prints the proposal', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => {})
-    stubApi({ 'GET /public/proposals/tok-123': () => jsonResponse(200, shared) })
+    stubApi({ 'POST /public/proposals/resolve': () => jsonResponse(200, shared) })
     render()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Imprimir / PDF' }))
@@ -76,7 +77,7 @@ describe('PublicProposalPage', () => {
 
   it('explains an unavailable link without technical details', async () => {
     stubApi({
-      'GET /public/proposals/tok-123': () =>
+      'POST /public/proposals/resolve': () =>
         jsonResponse(404, { code: 'share_link_not_found', message: 'Link inválido ou expirado.' }),
     })
     render()
@@ -92,7 +93,7 @@ describe('PublicProposalPage', () => {
   it('offers a retry for other errors', async () => {
     let calls = 0
     stubApi({
-      'GET /public/proposals/tok-123': () =>
+      'POST /public/proposals/resolve': () =>
         ++calls === 1
           ? jsonResponse(429, { code: 'rate_limited', message: 'Muitas tentativas. Aguarde.' })
           : jsonResponse(200, shared),
