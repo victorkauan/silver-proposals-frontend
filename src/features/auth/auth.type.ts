@@ -2,6 +2,9 @@ export type User = {
   id: string
   email: string
   name: string
+  created_at: string
+  privacy_up_to_date: boolean
+  privacy_accepted_at: string | null
 }
 
 export type TokenResponse = {

@@ -2,11 +2,11 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { stubApi } from '@shared/test/fetch.helper'
-import { fakeSession, renderRoute } from '@shared/test/render.helper'
+import { fakeSession, renderRoute, fakeUser } from '@shared/test/render.helper'
 import { jsonResponse } from '@shared/test/sse.helper'
 import { HomePage } from '@features/app/pages/home'
 
-const user = { id: '1', email: 'ana@example.com', name: 'Ana Lima' }
+const user = fakeUser({ id: '1', email: 'ana@example.com', name: 'Ana Lima' })
 const session = () => fakeSession({ status: 'authenticated', user })
 const empty = () => jsonResponse(200, { items: [], total: 0 })
 

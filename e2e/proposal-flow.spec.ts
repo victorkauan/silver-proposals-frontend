@@ -12,6 +12,7 @@ test('signs up, generates, edits, and shares a proposal', async ({ page, browser
     await page.getByLabel('Nome').fill('Ana Teste')
     await page.getByLabel('E-mail').fill(email)
     await page.getByLabel('Senha').fill(PASSWORD)
+    await page.getByRole('checkbox', { name: /aviso de privacidade/ }).check()
     await page.getByRole('button', { name: 'Criar conta' }).click()
 
     await expect(page.getByRole('heading', { name: 'Olá, Ana' })).toBeVisible()

@@ -16,6 +16,7 @@ import {
 } from '@shared/components/ui/sidebar'
 import { NavUser } from '@features/app/components/nav-user'
 
+// Product areas only; account settings live in the user menu in the footer.
 const NAVIGATION = [{ title: 'Propostas', to: '/', icon: FileText, section: '/propostas' }]
 
 export function AppSidebar() {

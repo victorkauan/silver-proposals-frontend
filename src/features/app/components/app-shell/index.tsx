@@ -12,6 +12,7 @@ import {
 import { Separator } from '@shared/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar'
 import { AppSidebar } from '@features/app/components/app-sidebar'
+import { PrivacyBanner } from '@features/app/components/privacy-banner'
 
 type Crumb = { label: string; to: string }
 
@@ -48,6 +49,7 @@ export function AppShell({ page, parents = [], children }: AppShellProps) {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
+        <PrivacyBanner />
         <div className="flex flex-1 flex-col">{children}</div>
       </SidebarInset>
     </SidebarProvider>

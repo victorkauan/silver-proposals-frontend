@@ -4,19 +4,26 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { setAccessToken, setRefreshHandler } from '@shared/api/http.client'
 import { authApi } from '@features/auth/auth.api'
 import type { TokenResponse, User } from '@features/auth/auth.type'
-import { type Session, SessionContext, type SessionStatus } from '@features/auth/session.context'
+import {
+  type Session,
+  SessionContext,
+  type SessionNotice,
+  type SessionStatus,
+} from '@features/auth/session.context'
 
-type State = { status: SessionStatus; user: User | null }
+type State = { status: SessionStatus; user: User | null; notice: SessionNotice | null }
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
-  const [state, setState] = useState<State>({ status: 'loading', user: null })
+  const [state, setState] = useState<State>({ status: 'loading', user: null, notice: null })
   const refreshing = useRef<Promise<string | null> | null>(null)
 
-  const apply = useCallback((data: TokenResponse | null) => {
+  const apply = useCallback((data: TokenResponse | null, notice: SessionNotice | null = null) => {
     setAccessToken(data?.access_token ?? null)
     setState(
-      data ? { status: 'authenticated', user: data.user } : { status: 'anonymous', user: null },
+      data
+        ? { status: 'authenticated', user: data.user, notice: null }
+        : { status: 'anonymous', user: null, notice },
     )
   }, [])
 
@@ -56,6 +63,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           apply(null)
           queryClient.clear()
         }
+      },
+      setUser: (user) => setState((current) => ({ ...current, user })),
+      endSession: (notice) => {
+        apply(null, notice ?? null)
+        queryClient.clear()
       },
     }),
     [state, apply, queryClient],

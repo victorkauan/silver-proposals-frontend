@@ -1,4 +1,5 @@
-import { ChevronsUpDown, LogOut, Monitor, Moon, Sun } from 'lucide-react'
+import { ChevronsUpDown, LogOut, Monitor, Moon, Sun, UserRound } from 'lucide-react'
+import { Link, useLocation } from 'react-router'
 
 import { Avatar, AvatarFallback } from '@shared/components/ui/avatar'
 import {
@@ -48,14 +49,22 @@ export function NavUser() {
   const { user, logout } = useSession()
   const { theme, setTheme } = useTheme()
   const { isMobile } = useSidebar()
+  const { pathname } = useLocation()
   if (!user) return null
+  const onAccount = pathname.startsWith('/conta')
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<SidebarMenuButton size="lg" className="aria-expanded:bg-sidebar-accent" />}
+            render={
+              <SidebarMenuButton
+                size="lg"
+                isActive={onAccount}
+                className="aria-expanded:bg-sidebar-accent data-active:bg-primary/10 data-active:hover:bg-primary/15"
+              />
+            }
           >
             <UserIdentity name={user.name} email={user.email} />
             <ChevronsUpDown className="ml-auto size-4" />
@@ -73,6 +82,11 @@ export function NavUser() {
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link to="/conta" />}>
+              <UserRound />
+              Minha conta
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs text-muted-foreground">Tema</DropdownMenuLabel>

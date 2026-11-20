@@ -59,4 +59,13 @@ describe('LoginPage', () => {
 
     await waitFor(() => expect(screen.getByRole('button', { name: /Entrar/ })).toBeDisabled())
   })
+
+  it('confirms that the account was deleted', () => {
+    renderRoute(<LoginPage />, {
+      path: '/entrar',
+      session: fakeSession({ notice: 'account_deleted' }),
+    })
+
+    expect(screen.getByRole('status')).toHaveTextContent('Sua conta foi excluída.')
+  })
 })

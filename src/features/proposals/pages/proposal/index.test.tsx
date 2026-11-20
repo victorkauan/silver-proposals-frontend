@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { stubApi } from '@shared/test/fetch.helper'
-import { fakeSession, renderRoute } from '@shared/test/render.helper'
+import { fakeSession, renderRoute, fakeUser } from '@shared/test/render.helper'
 import { jsonResponse, sseEvent, sseResponse } from '@shared/test/sse.helper'
 import { ProposalPage } from '@features/proposals/pages/proposal'
 import type { ProposalDetail } from '@features/proposals/proposal.type'
@@ -29,7 +29,7 @@ function render(proposal: Partial<ProposalDetail> | (() => Response)) {
   return renderRoute(<ProposalPage />, {
     session: fakeSession({
       status: 'authenticated',
-      user: { id: '1', email: 'ana@example.com', name: 'Ana Lima' },
+      user: fakeUser({ id: '1', email: 'ana@example.com', name: 'Ana Lima' }),
     }),
     path: '/propostas/:id',
     initialEntries: ['/propostas/p-1'],

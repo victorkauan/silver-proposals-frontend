@@ -14,6 +14,9 @@ export const registerSchema = z.object({
     .string()
     .min(8, 'A senha precisa ter pelo menos 8 caracteres.')
     .max(128, 'Use no máximo 128 caracteres.'),
+  acceptPrivacy: z.boolean().refine((accepted) => accepted, {
+    message: 'Aceite o aviso de privacidade para continuar.',
+  }),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
