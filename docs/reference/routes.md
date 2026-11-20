@@ -11,6 +11,7 @@
 | `/propostas/:id/historico` | members of the proposal                    | Version history with document and changes views; restore (owner, editor) |
 | `/conta`                   | logged-in users                            | Redirects to `/conta/perfil`                                             |
 | `/conta/perfil`            | logged-in users                            | Account: name and e-mail (e-mail change asks for the password)           |
+| `/conta/seguranca`         | logged-in users                            | Two-factor authentication, password change, and active sessions          |
 | `/conta/dados`             | logged-in users                            | Privacy notice status, data export, and account deletion                 |
 | `/privacidade`             | anyone                                     | Privacy notice (LGPD)                                                    |
 | `/p/:token`                | anyone, no login                           | Public, read-only proposal from a share link                             |
@@ -63,7 +64,22 @@ Sign-up requires ticking "Li e aceito o aviso de privacidade"; the link opens `/
 text lives in `src/features/privacy/privacy.content.ts`; when it changes, the API's `PRIVACY_NOTICE_VERSION` must change
 too, and every user whose accepted version is older sees a banner at the top of the app until they accept it.
 
-`/conta` has one tab per area (Perfil, Privacidade e dados), each with its own URL. Changing the e-mail and deleting the
+`/conta` has one tab per area (Perfil, Segurança, Privacidade e dados), each with its own URL. Changing the e-mail and deleting the
 account ask for the current password; deletion also asks the user to type `EXCLUIR`. After deletion the session ends with
 an `account_deleted` notice, and the login page confirms it. The export downloads `silver-proposals-dados.json` from
 `GET /account/export`.
+
+## Account security
+
+The **Segurança** tab enrolls an authenticator with a QR code or a manual key, then confirms enrollment with a
+six-digit code. QR codes render in the browser. Recovery codes appear after enrollment or regeneration and can
+be copied before closing the dialog. Regeneration invalidates the previous codes. Disabling 2FA requires the
+current password and an authenticator or recovery code. The authenticator field uses six numeric slots in setup,
+login, and deactivation. The recovery-code option shows an alphanumeric field.
+
+Accounts with 2FA stay on the login page after entering their password. The challenge stays in memory until
+the user enters a code or returns to the password form. A successful second step returns them to the requested
+page. If the challenge expires, they must enter their password again.
+
+Active sessions show the browser, last activity, and a marker for the current session. Users can end individual
+sessions, including the current one, or end all others. Password changes also end all other sessions.

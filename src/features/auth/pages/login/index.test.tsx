@@ -50,7 +50,7 @@ describe('LoginPage', () => {
   })
 
   it('disables the button while logging in', async () => {
-    const session = fakeSession({ login: vi.fn(() => new Promise<void>(() => {})) })
+    const session = fakeSession({ login: vi.fn(() => new Promise<never>(() => {})) })
     renderRoute(<LoginPage />, { session, path: '/entrar' })
 
     await userEvent.type(screen.getByLabelText('E-mail'), 'ana@example.com')
@@ -58,6 +58,50 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
 
     await waitFor(() => expect(screen.getByRole('button', { name: /Entrar/ })).toBeDisabled())
+  })
+
+  it('waits for the second factor and returns to the requested page with a recovery code', async () => {
+    const session = fakeSession({
+      login: vi.fn(async () => ({ status: 'two_factor' as const, challengeToken: 'challenge' })),
+    })
+    const { router } = renderRoute(<LoginPage />, {
+      session,
+      path: '/entrar',
+      initialEntries: [{ pathname: '/entrar', state: { from: '/conta/seguranca' } }],
+    })
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('E-mail'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Senha'), 'uma senha longa')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
+    expect(await screen.findByRole('heading', { name: 'Verificação em duas etapas' })).toBeVisible()
+    expect(router.state.location.pathname).toBe('/entrar')
+    expect(screen.getByRole('button', { name: 'Verificar' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Usar um código de recuperação' }))
+    await user.type(screen.getByLabelText('Código de recuperação'), 'abcde-23456')
+    await user.click(screen.getByRole('button', { name: 'Verificar' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/conta/seguranca'))
+    expect(session.completeTwoFactor).toHaveBeenCalledWith('challenge', 'abcde-23456')
+  })
+
+  it('returns to password entry when the challenge expires', async () => {
+    const session = fakeSession({
+      login: vi.fn(async () => ({ status: 'two_factor' as const, challengeToken: 'expired' })),
+      completeTwoFactor: vi.fn(async () => {
+        throw new ApiError(401, 'invalid_challenge', 'Entre novamente.')
+      }),
+    })
+    renderRoute(<LoginPage />, { session, path: '/entrar' })
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText('E-mail'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Senha'), 'uma senha longa')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
+    await user.click(await screen.findByRole('button', { name: 'Usar um código de recuperação' }))
+    await user.click(screen.getByRole('button', { name: 'Usar o app autenticador' }))
+    await user.type(screen.getByLabelText('Código do app autenticador'), '123456')
+    await user.click(screen.getByRole('button', { name: 'Verificar' }))
+    expect(await screen.findByText('Entre novamente.')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Entrar novamente' }))
+    expect(screen.getByLabelText('Senha')).toHaveValue('')
   })
 
   it('confirms that the account was deleted', () => {

@@ -9,6 +9,7 @@ import { useSession } from '@features/auth/session.context'
 
 const TABS = [
   { to: '/conta/perfil', label: 'Perfil' },
+  { to: '/conta/seguranca', label: 'Segurança' },
   { to: '/conta/dados', label: 'Privacidade e dados' },
 ]
 
@@ -24,7 +25,7 @@ export function AccountLayout({ page, children }: AccountLayoutProps) {
     <AppShell page={page} parents={[{ label: 'Minha conta', to: '/conta' }]}>
       <div className="mx-auto w-full max-w-3xl px-6 py-10">
         <div className="mb-8 flex items-center gap-4">
-          <div className="flex size-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 to-violet-500/15 text-lg font-semibold text-primary">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 to-violet-500/15 text-lg font-semibold text-primary">
             {user ? initials(user.name) : ''}
           </div>
           <div className="min-w-0">
@@ -36,7 +37,7 @@ export function AccountLayout({ page, children }: AccountLayoutProps) {
           </div>
         </div>
         <nav aria-label="Seções da conta" className="mb-8 border-b">
-          <ul className="-mb-px flex gap-6 text-sm">
+          <ul className="-mb-px flex flex-wrap gap-x-4 gap-y-2 text-sm sm:gap-x-6">
             {TABS.map(({ to, label }) => (
               <li key={to}>
                 <NavLink

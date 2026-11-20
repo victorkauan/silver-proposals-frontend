@@ -46,6 +46,11 @@ export const routes: RouteObject[] = [
           import('@features/account/pages/profile').then((m) => ({ Component: m.ProfilePage })),
       },
       {
+        path: '/conta/seguranca',
+        lazy: () =>
+          import('@features/account/pages/security').then((m) => ({ Component: m.SecurityPage })),
+      },
+      {
         path: '/conta/dados',
         lazy: () => import('@features/account/pages/data').then((m) => ({ Component: m.DataPage })),
       },

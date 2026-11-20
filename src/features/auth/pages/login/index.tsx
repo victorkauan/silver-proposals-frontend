@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router'
 
@@ -11,10 +12,12 @@ import { Input } from '@shared/components/ui/input'
 import { Spinner } from '@shared/components/ui/spinner'
 import { type LoginInput, loginSchema } from '@features/auth/auth.schema'
 import { AuthLayout } from '@features/auth/components/auth-layout'
+import { TwoFactorStep } from '@features/auth/components/two-factor-step'
 import { useSession } from '@features/auth/session.context'
 
 export function LoginPage() {
-  const { login, notice } = useSession()
+  const { login, completeTwoFactor, notice } = useSession()
+  const [challenge, setChallenge] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from ?? '/'
@@ -23,10 +26,33 @@ export function LoginPage() {
     defaultValues: { email: '', password: '' },
   })
   const mutation = useMutation({
+    gcTime: 0,
     mutationFn: (values: LoginInput) => login(values),
-    onSuccess: () => navigate(from, { replace: true }),
+    onSuccess: (result) => {
+      mutation.reset()
+      form.resetField('password')
+      if (result.status === 'two_factor') setChallenge(result.challengeToken)
+      else void navigate(from, { replace: true })
+    },
   })
   const { errors } = form.formState
+
+  if (challenge) {
+    return (
+      <AuthLayout
+        title="Verificação em duas etapas"
+        description="Confirme sua identidade para acessar suas propostas."
+      >
+        <TwoFactorStep
+          onBack={() => setChallenge(null)}
+          onSubmit={async (code) => {
+            await completeTwoFactor(challenge, code)
+            await navigate(from, { replace: true })
+          }}
+        />
+      </AuthLayout>
+    )
+  }
 
   return (
     <AuthLayout

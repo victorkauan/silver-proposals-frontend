@@ -16,6 +16,7 @@ export function fakeUser(overrides: Partial<User> = {}): User {
     created_at: '2026-11-01T12:00:00Z',
     privacy_up_to_date: true,
     privacy_accepted_at: '2026-11-01T12:00:00Z',
+    two_factor_enabled: false,
     ...overrides,
   }
 }
@@ -25,7 +26,8 @@ export function fakeSession(overrides: Partial<Session> = {}): Session {
     status: 'anonymous',
     user: null,
     notice: null,
-    login: vi.fn(async () => {}),
+    login: vi.fn(async () => ({ status: 'signed_in' as const })),
+    completeTwoFactor: vi.fn(async () => {}),
     register: vi.fn(async () => {}),
     logout: vi.fn(async () => {}),
     setUser: vi.fn(),
