@@ -56,7 +56,11 @@ export const proposalApi = {
 
 export const publicApi = {
   get: (token: string) =>
-    requestJson<SharedProposal>(`/public/proposals/${encodeURIComponent(token)}`, { auth: false }),
+    requestJson<SharedProposal>('/public/proposals/resolve', {
+      method: 'POST',
+      body: { token },
+      auth: false,
+    }),
 }
 
 export function shareUrl(token: string): string {
