@@ -69,7 +69,7 @@ export function NewProposalPage() {
   })
 
   return (
-    <AppShell page="Nova proposta" parents={[{ label: 'Propostas', to: '/' }]}>
+    <AppShell page="Nova proposta" parents={[{ label: 'Propostas', to: '/propostas' }]}>
       <div className="@container mx-auto w-full max-w-6xl px-6 py-10">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">Nova proposta</h1>
@@ -165,7 +165,7 @@ export function NewProposalPage() {
                 </Field>
               </FieldGroup>
               <div className="flex justify-end gap-2 border-t bg-muted/30 px-6 py-4">
-                <Link to="/" className={buttonVariants({ variant: 'ghost' })}>
+                <Link to="/propostas" className={buttonVariants({ variant: 'ghost' })}>
                   Cancelar
                 </Link>
                 <Button type="submit" disabled={create.isPending}>

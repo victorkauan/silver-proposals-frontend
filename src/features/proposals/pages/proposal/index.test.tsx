@@ -168,7 +168,10 @@ describe('ProposalPage', () => {
     )
 
     expect(await screen.findByText('Proposta não encontrada.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Voltar às propostas' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Voltar às propostas' })).toHaveAttribute(
+      'href',
+      '/propostas',
+    )
   })
 
   it('shows other errors with a retry', async () => {

@@ -44,7 +44,7 @@ export function ProposalHistoryPage() {
     queryFn: () => proposalApi.versions(id),
   })
   const parents = [
-    { label: 'Propostas', to: '/' },
+    { label: 'Propostas', to: '/propostas' },
     { label: proposal.data?.title ?? 'Proposta', to: `/propostas/${id}` },
   ]
 
@@ -214,6 +214,7 @@ function VersionPanel({
   const restore = useMutation({
     mutationFn: () => proposalApi.restore(proposal.id, version.number),
     onSuccess: async (restored) => {
+      void queryClient.invalidateQueries({ queryKey: proposalKeys.dashboard() })
       queryClient.setQueryData(proposalKeys.detail(restored.id), restored)
       await queryClient.invalidateQueries({ queryKey: proposalKeys.list() })
       await queryClient.invalidateQueries({ queryKey: proposalKeys.versions(restored.id) })

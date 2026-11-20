@@ -21,6 +21,13 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/', element: <HomePage /> },
       {
+        path: '/propostas',
+        lazy: () =>
+          import('@features/proposals/pages/proposals').then((m) => ({
+            Component: m.ProposalsPage,
+          })),
+      },
+      {
         path: '/propostas/nova',
         lazy: () =>
           import('@features/proposals/pages/new-proposal').then((m) => ({

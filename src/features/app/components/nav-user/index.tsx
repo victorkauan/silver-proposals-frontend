@@ -48,7 +48,7 @@ function UserIdentity({ name, email }: { name: string; email: string }) {
 export function NavUser() {
   const { user, logout } = useSession()
   const { theme, setTheme } = useTheme()
-  const { isMobile } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar()
   const { pathname } = useLocation()
   if (!user) return null
   const onAccount = pathname.startsWith('/conta')
@@ -83,7 +83,7 @@ export function NavUser() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link to="/conta" />}>
+            <DropdownMenuItem render={<Link to="/conta" onClick={() => setOpenMobile(false)} />}>
               <UserRound />
               Minha conta
             </DropdownMenuItem>

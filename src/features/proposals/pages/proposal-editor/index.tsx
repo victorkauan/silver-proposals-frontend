@@ -59,7 +59,7 @@ export function ProposalEditorPage() {
   const { id = '' } = useParams()
   const query = useQuery({ queryKey: proposalKeys.detail(id), queryFn: () => proposalApi.get(id) })
   const parents = [
-    { label: 'Propostas', to: '/' },
+    { label: 'Propostas', to: '/propostas' },
     { label: query.data?.title ?? 'Proposta', to: `/propostas/${id}` },
   ]
 
@@ -195,6 +195,7 @@ function Editor({ proposal }: { proposal: ProposalDetail }) {
     mutationFn: () => proposalApi.saveContent(base.id, draft, base.version),
     onSuccess: (saved) => {
       setBase(saved)
+      void queryClient.invalidateQueries({ queryKey: proposalKeys.dashboard() })
       queryClient.setQueryData(proposalKeys.detail(saved.id), saved)
       void queryClient.invalidateQueries({ queryKey: proposalKeys.list() })
       void queryClient.invalidateQueries({ queryKey: proposalKeys.versions(saved.id) })
