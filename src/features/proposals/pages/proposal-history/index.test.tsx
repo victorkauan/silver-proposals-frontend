@@ -12,6 +12,7 @@ const proposal: ProposalDetail = {
   title: 'Site institucional',
   client_name: 'Padaria',
   role: 'owner',
+  status: 'edited',
   archived_at: null,
   updated_at: '2026-11-18T12:00:00Z',
   briefing: 'b',

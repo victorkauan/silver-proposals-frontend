@@ -1,6 +1,5 @@
 import type { UseQueryResult } from '@tanstack/react-query'
-import { ChevronRight, FileText, Plus, Search } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronLeft, ChevronRight, FileText, Plus, Search } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { errorMessage } from '@shared/api/error-message.helper'
@@ -8,10 +7,21 @@ import { Alert, AlertAction, AlertDescription } from '@shared/components/ui/aler
 import { Badge } from '@shared/components/ui/badge'
 import { Button, buttonVariants } from '@shared/components/ui/button'
 import { Input } from '@shared/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@shared/components/ui/select'
 import { Skeleton } from '@shared/components/ui/skeleton'
 import { cn } from '@shared/helpers/cn.helper'
 import { formatDateTime, formatRelative } from '@shared/helpers/date.helper'
 import { initials } from '@shared/helpers/initials.helper'
+import { ProposalStatusBadge } from '@features/proposals/components/proposal-status-badge'
+import { PAGE_SIZES } from '@features/proposals/proposal.api'
 import type { ProposalPage, ProposalRole } from '@features/proposals/proposal.type'
 
 const ROLE_LABEL: Record<ProposalRole, string | null> = {
@@ -33,13 +43,6 @@ function toneFor(name: string): string {
   let hash = 0
   for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
   return TONES[hash % TONES.length]
-}
-
-function normalize(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
 }
 
 function EmptyState() {
@@ -64,9 +67,96 @@ function EmptyState() {
   )
 }
 
-export function ProposalList({ query }: { query: UseQueryResult<ProposalPage> }) {
-  const [search, setSearch] = useState('')
+type ProposalListProps = {
+  query: UseQueryResult<ProposalPage>
+  search: string
+  onSearchChange: (value: string) => void
+  page: number
+  onPageChange: (page: number) => void
+  pageSize: number
+  onPageSizeChange: (size: number) => void
+}
 
+function Pagination({
+  page,
+  total,
+  onPageChange,
+  pageSize,
+  onPageSizeChange,
+}: {
+  page: number
+  total: number
+  onPageChange: (page: number) => void
+  pageSize: number
+  onPageSizeChange: (size: number) => void
+}) {
+  const pages = Math.max(1, Math.ceil(total / pageSize))
+  const first = (page - 1) * pageSize + 1
+  const last = Math.min(page * pageSize, total)
+  return (
+    <nav
+      aria-label="Paginação"
+      className="flex items-center justify-between gap-4 border-t bg-muted/20 px-4 py-2.5 text-sm"
+    >
+      <div className="flex items-center gap-4">
+        <p className="whitespace-nowrap text-muted-foreground tabular-nums">
+          {first}–{last} de {total}
+        </p>
+        <div className="flex items-center gap-2 whitespace-nowrap text-muted-foreground">
+          <span aria-hidden className="max-sm:hidden">
+            Por página
+          </span>
+          <Select value={pageSize} onValueChange={(value) => onPageSizeChange(Number(value))}>
+            <SelectTrigger size="sm" aria-label="Propostas por página" className="tabular-nums">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Itens por página</SelectLabel>
+                {PAGE_SIZES.map((size) => (
+                  <SelectItem key={size} value={size}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+        >
+          <ChevronLeft /> <span className="max-sm:sr-only">Anterior</span>
+        </Button>
+        <span className="px-2 whitespace-nowrap text-muted-foreground tabular-nums">
+          {page} / {pages}
+        </span>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={page >= pages}
+          onClick={() => onPageChange(page + 1)}
+        >
+          <span className="max-sm:sr-only">Próxima</span> <ChevronRight />
+        </Button>
+      </div>
+    </nav>
+  )
+}
+
+export function ProposalList({
+  query,
+  search,
+  onSearchChange,
+  page,
+  onPageChange,
+  pageSize,
+  onPageSizeChange,
+}: ProposalListProps) {
   if (query.isPending) {
     return (
       <div aria-label="Carregando propostas" className="space-y-2">
@@ -91,14 +181,9 @@ export function ProposalList({ query }: { query: UseQueryResult<ProposalPage> })
     )
   }
 
-  if (query.data.items.length === 0) return <EmptyState />
-
-  const term = normalize(search.trim())
-  const items = term
-    ? query.data.items.filter((proposal) =>
-        normalize(`${proposal.title} ${proposal.client_name}`).includes(term),
-      )
-    : query.data.items
+  const term = search.trim()
+  if (query.data.total === 0 && !term && page === 1) return <EmptyState />
+  const items = query.data.items
 
   return (
     <div className="space-y-3">
@@ -109,21 +194,30 @@ export function ProposalList({ query }: { query: UseQueryResult<ProposalPage> })
           aria-label="Buscar propostas"
           placeholder="Buscar por título ou cliente"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => onSearchChange(event.target.value)}
           className="pl-8"
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card">
-        <div className="hidden grid-cols-[minmax(0,1fr)_12rem_8rem_1rem] gap-4 border-b bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground sm:grid">
+      <div
+        aria-busy={query.isFetching}
+        className={cn(
+          'overflow-hidden rounded-xl border bg-card transition-opacity',
+          query.isPlaceholderData && 'opacity-60',
+        )}
+      >
+        <div className="hidden grid-cols-[minmax(0,1fr)_11rem_8rem_7rem_1rem] gap-4 border-b bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground sm:grid">
           <span>Proposta</span>
           <span>Cliente</span>
+          <span>Situação</span>
           <span>Atualizada</span>
           <span />
         </div>
         {items.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-            Nenhuma proposta encontrada para “{search.trim()}”.
+            {term
+              ? `Nenhuma proposta encontrada para “${term}”.`
+              : 'Nenhuma proposta nesta página.'}
           </p>
         ) : (
           <ul className="divide-y">
@@ -133,7 +227,7 @@ export function ProposalList({ query }: { query: UseQueryResult<ProposalPage> })
                 <li key={proposal.id}>
                   <Link
                     to={`/propostas/${proposal.id}`}
-                    className="group grid grid-cols-[minmax(0,1fr)_1rem] items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none sm:grid-cols-[minmax(0,1fr)_12rem_8rem_1rem]"
+                    className="group grid grid-cols-[minmax(0,1fr)_1rem] items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none sm:grid-cols-[minmax(0,1fr)_11rem_8rem_7rem_1rem]"
                   >
                     <span className="flex min-w-0 items-center gap-3">
                       <span
@@ -150,13 +244,19 @@ export function ProposalList({ query }: { query: UseQueryResult<ProposalPage> })
                           <span className="truncate text-sm font-medium">{proposal.title}</span>
                           {role && <Badge variant="secondary">{role}</Badge>}
                         </span>
-                        <span className="block truncate text-xs text-muted-foreground sm:hidden">
-                          {proposal.client_name} · {formatRelative(proposal.updated_at)}
+                        <span className="flex items-center gap-2 text-xs text-muted-foreground sm:hidden">
+                          <ProposalStatusBadge status={proposal.status} />
+                          <span className="truncate">
+                            {proposal.client_name} · {formatRelative(proposal.updated_at)}
+                          </span>
                         </span>
                       </span>
                     </span>
                     <span className="hidden truncate text-sm text-muted-foreground sm:block">
                       {proposal.client_name}
+                    </span>
+                    <span className="hidden sm:block">
+                      <ProposalStatusBadge status={proposal.status} />
                     </span>
                     <time
                       dateTime={proposal.updated_at}
@@ -171,6 +271,15 @@ export function ProposalList({ query }: { query: UseQueryResult<ProposalPage> })
               )
             })}
           </ul>
+        )}
+        {query.data.total > PAGE_SIZES[0] && (
+          <Pagination
+            page={page}
+            total={query.data.total}
+            onPageChange={onPageChange}
+            pageSize={pageSize}
+            onPageSizeChange={onPageSizeChange}
+          />
         )}
       </div>
     </div>

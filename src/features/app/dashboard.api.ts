@@ -1,7 +1,7 @@
 import { requestJson } from '@shared/api/http.client'
-import type { ProposalRole } from '@features/proposals/proposal.type'
+import type { ProposalRole, ProposalStatus } from '@features/proposals/proposal.type'
 
-export type ProposalStatus = 'draft' | 'generated' | 'edited' | 'shared' | 'archived'
+export type { ProposalStatus }
 export type ActivityKind = 'generated' | 'edited' | 'restored' | 'link_created' | 'link_revoked'
 
 export type DashboardSummary = {

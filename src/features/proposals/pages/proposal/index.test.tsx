@@ -12,6 +12,7 @@ const base: ProposalDetail = {
   title: 'Site institucional',
   client_name: 'Padaria Pão Quente',
   role: 'owner',
+  status: 'edited',
   archived_at: null,
   updated_at: '2026-11-17T12:00:00Z',
   briefing: 'Site com cardápio',
@@ -56,6 +57,17 @@ describe('ProposalPage', () => {
       '/propostas/p-1/historico',
     )
     expect(screen.getByRole('button', { name: 'Compartilhar' })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['edited', 'Editada'],
+    ['shared', 'Compartilhada'],
+    ['archived', 'Arquivada'],
+  ] as const)('shows the real status %s instead of a fixed draft badge', async (status, label) => {
+    render({ status })
+
+    expect(await screen.findByText(label)).toBeInTheDocument()
+    expect(screen.queryByText('Rascunho')).not.toBeInTheDocument()
   })
 
   it('shows the outline, links to sections, and highlights the gaps the AI left', async () => {

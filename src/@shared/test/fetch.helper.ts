@@ -1,4 +1,4 @@
-type Handler = (init: RequestInit | undefined) => Response | Promise<Response>
+type Handler = (init: RequestInit | undefined, url: URL) => Response | Promise<Response>
 
 export function stubApi(routes: Record<string, Handler>) {
   const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
@@ -6,7 +6,7 @@ export function stubApi(routes: Record<string, Handler>) {
     const key = `${init?.method ?? 'GET'} ${url.pathname}`
     const handler = routes[key]
     if (!handler) throw new Error(`Unexpected request: ${key}`)
-    return handler(init)
+    return handler(init, url)
   })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
