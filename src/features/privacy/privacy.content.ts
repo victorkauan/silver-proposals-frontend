@@ -1,5 +1,5 @@
 export const PRIVACY_CONTACT = 'privacidade@silversoft.com.br'
-export const PRIVACY_UPDATED_AT = '20 de novembro de 2026'
+export const PRIVACY_UPDATED_AT = '22 de novembro de 2026'
 
 type Row = [string, string]
 
@@ -104,7 +104,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     id: 'transferencia',
     title: 'Transferência internacional',
     paragraphs: [
-      'Os dados são armazenados e processados nos Estados Unidos, na infraestrutura da AWS (região us-east-1) e no Amazon Bedrock. Essa transferência internacional está sujeita ao art. 33 da LGPD.',
+      'Os dados são armazenados e processados nos Estados Unidos, na infraestrutura da AWS (região us-east-2, Ohio) e no Amazon Bedrock. Essa transferência internacional está sujeita ao art. 33 da LGPD.',
     ],
   },
   {
