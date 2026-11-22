@@ -95,7 +95,8 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     id: 'compartilhamento',
     title: 'Com quem compartilhamos',
     items: [
-      'Amazon Web Services (AWS), que hospeda a aplicação, o banco de dados, os registros técnicos e o modelo de IA (Amazon Bedrock). Os dados enviados ao modelo não são compartilhados com o fornecedor do modelo nem usados para treiná-lo.',
+      'Amazon Web Services (AWS), que hospeda a aplicação, o banco de dados e os registros técnicos.',
+      'DeepInfra, que executa o modelo de IA (GLM-5.3 Flash). O briefing e as instruções são processados apenas em memória durante a geração: a DeepInfra não grava o conteúdo das requisições nem o usa para treinar modelos.',
       'Cloudflare, apenas para o serviço de DNS; ela não recebe o tráfego da aplicação.',
       'Não vendemos dados pessoais nem os usamos para publicidade.',
     ],
@@ -104,7 +105,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     id: 'transferencia',
     title: 'Transferência internacional',
     paragraphs: [
-      'Os dados são armazenados e processados nos Estados Unidos, na infraestrutura da AWS (região us-east-2, Ohio) e no Amazon Bedrock. Essa transferência internacional está sujeita ao art. 33 da LGPD.',
+      'Os dados são armazenados e processados nos Estados Unidos, na infraestrutura da AWS (região us-east-2, Ohio) e na DeepInfra. Essa transferência internacional está sujeita ao art. 33 da LGPD.',
     ],
   },
   {
